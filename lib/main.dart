@@ -1,8 +1,9 @@
 // Erich Krueger
 // Dillon Summers
 // Thomas Woodcum
-// Dylan Miller
-
+// Abby Mulry
+//Mark Herpin
+//Jianan Niu
 import 'package:flutter/material.dart';
 
 void main() {
