@@ -128,3 +128,13 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+class PlayPage extends StatefulWidget {
+  @override
+  // ignore: no_logic_in_create_state
+  State<StatefulWidget> createState() {
+    // TODO: implement createState
+    throw UnimplementedError();
+  }
+  
+}
