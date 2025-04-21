@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  const MyHomePage({super.key});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -42,26 +42,24 @@ class MyHomePage extends StatefulWidget {
   // used by the build method of the State. Fields in a Widget subclass are
   // always marked "final".
 
-  final String title;
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int pageIndex = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  static const List<Widget>_pages = <Widget> [
+    PlayPage(),
+    HelpPage(),
+  ];
 
+void _onItemTapped(int index)
+{
+  setState((){
+    pageIndex = index;
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,6 +68,40 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
+      body: _pages[pageIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        showUnselectedLabels: true,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.play_circle), 
+            label: 'Play',
+            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.help), 
+            label: 'Help',
+            ),
+        ],
+        currentIndex: pageIndex,
+        onTap: _onItemTapped,
+        unselectedItemColor: Colors.grey,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+}
+
+class PlayPage extends StatefulWidget {
+  const PlayPage({super.key});
+
+  @override
+  State<PlayPage> createState() => _PlayPageState();  
+}
+
+class _PlayPageState extends State<PlayPage> {
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -103,31 +135,6 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class PlayPage extends StatefulWidget {
-  const PlayPage({super.key});
-
-  @override
-  State<PlayPage> createState() => _PlayPageState();  
-}
-
-class _PlayPageState extends State<PlayPage> {
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("Here"),
-            ElevatedButton(onPressed: (){}, child: Icon(Icons.help))
-          ],
-        ),
-      )
     );
   }
 }
