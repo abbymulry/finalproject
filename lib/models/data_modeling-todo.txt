@@ -1,0 +1,3 @@
+1. Implement phase.dart which will have game rules, logic to see if cards meet criteria for success, etc.
+2. implement game.dart which will be main model to coordinate the deck, discard deck, game state, etc
+3. see if we need firebase if we are doing multiplayer functionality. if so, need to implement database structure, synchronization functions, account auth, etc 
