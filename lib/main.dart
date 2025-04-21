@@ -5,6 +5,7 @@
 //Mark Herpin
 //Jianan Niu
 //Dylan Miller
+// Joseph (Ashton) Berret
 //Game
 import 'package:flutter/material.dart';
 
