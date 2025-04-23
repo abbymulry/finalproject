@@ -141,7 +141,7 @@ class MyApp extends StatelessWidget {
       title: 'Phase 10 Game',
       theme: ThemeData(
         colorScheme:
-            ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 109, 92, 156)),
+            ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 7, 100, 186)),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
