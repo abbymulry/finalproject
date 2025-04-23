@@ -15,6 +15,17 @@ import 'dart:math';
 
 enum CardType { normal, wild, skip }
 
+class ProjectPalette {
+  Color darkGray = Color.fromARGB(255, 47, 47, 60);
+  Color lightGray = Color.fromARGB(255, 206, 206, 255);
+  Color white = Color.fromARGB(255, 255, 255, 255);
+  Color black = Color.fromARGB(255, 0, 0, 0);
+  Color red = Color.fromARGB(255, 255, 0, 87);
+  Color orange = Color.fromARGB(255, 255, 183, 0);
+  Color green = Color.fromARGB(255, 0, 255, 73);
+  Color blue = Color.fromARGB(255, 0, 228, 255);
+}
+
 class CardModel {
   final int number; // 1–12
   final String color; // Red, Blue, Green, Yellow
@@ -175,10 +186,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Phase 10"),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
+        backgroundColor: ProjectPalette().white,
+        foregroundColor: ProjectPalette().darkGray,
       ),
       body: _pages[pageIndex],
+      backgroundColor: ProjectPalette().darkGray,
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
         items: const <BottomNavigationBarItem>[
@@ -221,6 +233,9 @@ class PlayPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+              ),
   onPressed: () {
     final game = GameEngine([
   Player('Bob'),
@@ -235,32 +250,53 @@ GameSession().currentGame = game;
       ),
     );
   },
-  child: const Text("Start New Game"),
+  child: Text(
+    "Start New Game",
+    style: TextStyle(
+      color: ProjectPalette().black,
+    ),
+    ),
 ),
 
-            const SizedBox(height: 16),
-            ElevatedButton(
-  onPressed: () {
-    final game = GameSession().currentGame;
-    if (game != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => GameScreen(engine: game),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No game in progress.")),
-      );
-    }
-  },
-  child: const Text("Continue Game"),
+  const SizedBox(height: 16),
+  ElevatedButton(
+    style: ButtonStyle(
+      backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+    ),
+    onPressed: () {
+      final game = GameSession().currentGame;
+      if (game != null) {
+       Navigator.push(
+         context,
+          MaterialPageRoute(
+            builder: (_) => GameScreen(engine: game),
+          ),
+       );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+         const SnackBar(content: Text("No game in progress.")),
+        );
+     }
+   },
+  child: Text(
+    "Continue Game",
+    style: TextStyle(
+      color: ProjectPalette().black,
+    )
+    ),
 ),
             const SizedBox(height: 16),
             ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+              ),
               onPressed: () {},
-              child: const Text("Join Game"),
+              child: Text(
+                "Join Game",
+                style: TextStyle(
+                  color: ProjectPalette().black,
+                ),
+                ),
             ),
           ],
         ),
