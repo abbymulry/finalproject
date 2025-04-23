@@ -65,7 +65,7 @@ void _onItemTapped(int index)
     return Scaffold(
       appBar: AppBar(
         title: const Text("Phase 10"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color.fromARGB(255, 47,47,60),
         foregroundColor: Colors.white,
       ),
       body: _pages[pageIndex],
@@ -75,6 +75,8 @@ void _onItemTapped(int index)
           BottomNavigationBarItem(
             icon: Icon(Icons.play_circle), 
             label: 'Play',
+            backgroundColor: Color.fromARGB(255, 47,47,60),
+            
             ),
           BottomNavigationBarItem(
             icon: Icon(Icons.help), 
@@ -113,7 +115,13 @@ class _PlayPageState extends State<PlayPage> {
                   // Navigate to new game logic
                   // Navigator.push(context, MaterialPageRoute(builder: (_) => NewGameScreen()));
                 },
-                child: const Text("Start New Game"),
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(Color.fromARGB(255, 255, 183, 0)),
+                ),
+                child: const Text(
+                  "Start New Game",
+                  style: TextStyle(color: Colors.black)
+                  ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -121,7 +129,10 @@ class _PlayPageState extends State<PlayPage> {
                   // Navigate to continue game logic
                   // Navigator.push(context, MaterialPageRoute(builder: (_) => ContinueGameScreen()));
                 },
-                child: const Text("Continue Game"),
+                child: const Text(
+                  "Continue Game",
+                  style: TextStyle(color: Colors.black)
+                ),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -129,7 +140,9 @@ class _PlayPageState extends State<PlayPage> {
                   // Navigate to join game logic
                   // Navigator.push(context, MaterialPageRoute(builder: (_) => JoinGameScreen()));
                 },
-                child: const Text("Join Game"),
+                child: const Text(
+                  "Join Game",
+                  style: TextStyle(color: Colors.black)),
               ),
             ],
           ),
