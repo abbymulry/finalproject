@@ -275,8 +275,108 @@ class HelpPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: Text("Help content goes here."),
-    );
+      child: Column(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children:[
+                  Text("Objective:"),
+                ] 
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text("Be the first player to complete all ten phases by discarding your entire hand according to the specific requirements of the current phase.")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text("Setup:"),
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text("Shuffle the deck and deal 10 cards face down to each player")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("The remaining deck is placed face down in the center, forming the draw pile")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Flip the top card of the draw pile over to reveal the discard pile")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Gameplay:")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("At the beginning of your turn you will draw a card from draw pile")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("At the end of your turn you will discard a card into the discard pile")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Requirements can include a run(a sequence of cards of the same suit ascending or descending), or a set(3 or 4 of the same number)")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Once you discard all your cards for the current phase, you will move onto the next phase")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("The player to complete all 10 phases first wins!")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Special cards:")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Wild Card: Can be played as any number or color to complete a run or set")
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text("Skip Card: The next player draws 2 and completes their turn")
+                ],
+              )
+            ]
+          ),
+      );
   }
 }
 
