@@ -64,6 +64,8 @@
 //
 // ==============================================================
 
+import 'package:finalproject/models/card.dart';
+
 // player class tracks a single player's state in the game
 class Player {
   final String id;                 // unique identifier
