@@ -186,11 +186,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Phase 10"),
-        backgroundColor: ProjectPalette().white,
-        foregroundColor: ProjectPalette().darkGray,
+        backgroundColor: Colors.lightBlue,
+        foregroundColor: Colors.white,
       ),
-      body: _pages[pageIndex],
-      backgroundColor: ProjectPalette().darkGray,
+      body: Container(
+  color: Colors.white,
+  child: _pages[pageIndex],
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
         items: const <BottomNavigationBarItem>[
