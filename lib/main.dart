@@ -406,7 +406,7 @@ void didChangeDependencies() {
     return Scaffold(
       appBar: AppBar(
         title: Text("${player.name}'s Turn"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
       ),
       body: Padding(
