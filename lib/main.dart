@@ -312,109 +312,53 @@ class HelpPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment:MainAxisAlignment.center,
         children: [
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children:[
-                  Text("Objective:"),
-                ] 
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text("Be the first player to complete all ten phases by discarding your entire hand according to the specific requirements of the current phase.")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text("Setup:"),
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text("Shuffle the deck and deal 10 cards face down to each player")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("The remaining deck is placed face down in the center, forming the draw pile")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Flip the top card of the draw pile over to reveal the discard pile")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Gameplay:")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("At the beginning of your turn you will draw a card from draw pile")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("At the end of your turn you will discard a card into the discard pile")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Requirements can include a run(a sequence of cards of the same suit ascending or descending), or a set(3 or 4 of the same number)")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Once you discard all your cards for the current phase, you will move onto the next phase")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("The player to complete all 10 phases first wins!")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Special cards:")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Wild Card: Can be played as any number or color to complete a run or set")
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text("Skip Card: The next player draws 2 and completes their turn")
-                ],
-              )
-            ]
+          ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ObjectivePage()),
+                    );
+                  },
+                  child: const Text("Objective")
           ),
-      );
+          ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SetupPage()),
+                    );
+                  },
+                  child: const Text("Setup")
+          ),
+                    ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RulePage()),
+                    );
+                  },
+                  child: const Text("Rules")
+          ),
+          ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SpecialCardsPage()),
+                    );
+                  },
+                  child: const Text("Special Cards")
+          ),
+        ],
+      ),           
+    );
   }
 }
 
@@ -595,6 +539,222 @@ void didChangeDependencies() {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ObjectivePage extends StatelessWidget {
+  const ObjectivePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+          Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text(
+                      "Be the first player to complete all ten phases by discarding your entire hand",
+                      style: TextStyle(fontSize:20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text(
+                      "according to the specific requirements of the current phase.",
+                      style: TextStyle(fontSize:20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "The player to complete all 10 phases first wins!",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+        ],
+      ),           
+    );
+  }
+}
+
+class SetupPage extends StatelessWidget {
+  const SetupPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+           Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                    Text(
+                      "Shuffle the deck and deal 10 cards face down to each player",
+                      style: TextStyle(fontSize:20),
+                    
+                    ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "The remaining deck is placed face down in the center, forming the draw pile",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Flip the top card of the draw pile over to reveal the discard pile",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+
+
+        ],
+      ),           
+    );
+  }
+}
+
+class RulePage extends StatelessWidget {
+  const RulePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+          Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "At the beginning of your turn you will draw a card from draw pile",
+                    style: TextStyle(fontSize:20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "At the end of your turn you will discard a card into the discard pile",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "During your turn you will attempt to discard as many cards ",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "as you can while meeting the requirements of the current phase",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Requirements can include... ",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "a run(a sequence of cards of the same suit ascending or descending),",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "or a set(3 or 4 of the same number)",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Once you discard all your cards for the current phase, you will move onto the next phase",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "The player to complete all 10 phases first wins!",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              ),
+        ],
+      ),           
+    );
+  }
+}
+
+class SpecialCardsPage extends StatelessWidget {
+  const SpecialCardsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+          Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Wild Card: Can be played as any number or color to complete a run or set",
+                    style: TextStyle(fontSize:20),
+                    )
+                ],
+              ),
+              Row(
+                mainAxisAlignment:MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Skip Card: The next player draws 2 and completes their turn",
+                    style: TextStyle(fontSize: 20),
+                    )
+                ],
+              )
+        ],
+      ),           
     );
   }
 }
