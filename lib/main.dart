@@ -635,11 +635,36 @@ class RulePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment:MainAxisAlignment.center,
+    return Scaffold(
+      body: Stack(
         children: [
-          Row(
+          Positioned(
+            top: 100,
+            left: 150,
+            child: Transform.rotate(
+              angle: -0.2,
+              child: Image.asset('assets/run.png',
+              width:300,
+              height:100,
+              )
+            )
+          ),
+          Positioned(
+            top: 100,
+            right: 150,
+            child: Transform.rotate(
+              angle: 0.2,
+              child: Image.asset('assets/set.png',
+              width:300,
+              height:100,
+              )
+            )
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
                 mainAxisAlignment:MainAxisAlignment.center,
                 children: [
                   Text(
@@ -720,8 +745,11 @@ class RulePage extends StatelessWidget {
                     )
                 ],
               ),
-        ],
-      ),           
+              ]
+            )
+          )
+        ]
+      )
     );
   }
 }
@@ -731,8 +759,34 @@ class SpecialCardsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
+    return Scaffold(
+    body: Stack(
+      children: [
+        Positioned(
+          top: 200,
+          left: 100,
+          child: Transform.rotate(
+            angle: -0.2,
+            child: Image.asset('assets/wild.png',
+            width:100,
+            height:200,
+            )
+         )
+        ),
+        Positioned(
+          bottom: 200,
+          right: 100,
+          child: Transform.rotate(
+            angle:0.2,
+            child: Image.asset('assets/skip.png',
+            width: 100,
+            height:200,
+            )  
+          )        
+        ),
+      Center(
+           child: 
+      Column(
         mainAxisAlignment:MainAxisAlignment.center,
         children: [
           Row(
@@ -753,8 +807,11 @@ class SpecialCardsPage extends StatelessWidget {
                     )
                 ],
               )
-        ],
-      ),           
+        ]
+      )
+      )
+      ]
+    )
     );
   }
 }

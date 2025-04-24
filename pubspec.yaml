@@ -109,6 +109,10 @@ assets:
   - assets/yellowten.png
   - assets/yelloweleven.png
   - assets/yellowtwelve.png
+  - assets/skip.png
+  - assets/set.png
+  - assets/wild.png
+  - assets/run.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
