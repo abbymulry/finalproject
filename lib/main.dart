@@ -209,6 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
         unselectedItemColor: Colors.grey,
         selectedItemColor: Theme.of(context).colorScheme.primary,
       ),
+      )
     );
   }
 }
