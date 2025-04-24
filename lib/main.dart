@@ -192,6 +192,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Container(
   color: Colors.white,
   child: _pages[pageIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
         items: const <BottomNavigationBarItem>[
@@ -209,8 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
         unselectedItemColor: Colors.grey,
         selectedItemColor: Theme.of(context).colorScheme.primary,
       ),
-      )
-    );
+      );
   }
 }
 
