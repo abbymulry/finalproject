@@ -316,48 +316,80 @@ class HelpPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment:MainAxisAlignment.center,
         children: [
-          ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ObjectivePage()),
-                    );
-                  },
-                  child: const Text("Objective")
+        ElevatedButton(
+                  onPressed: 
+                    () => showDialog<String>(                     
+                      context: context,
+                      builder:
+                        (BuildContext context) => AlertDialog(
+                          title: const Text('Objective'),
+                          content: const Text('Be the first player to complete all ten phases by discarding your entire hand according to the specific requirements of the current phase. The player to complete all 10 phases first wins!'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK')
+                              )
+                          ]
+                        )
+                      ),
+                  child: const Text('Objective')
           ),
-          ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SetupPage()),
-                    );
-                  },
-                  child: const Text("Setup")
+                  ElevatedButton(
+                  onPressed: 
+                    () => showDialog<String>(                     
+                      context: context,
+                      builder:
+                        (BuildContext context) => AlertDialog(
+                          title: const Text('Setup'),
+                          content: const Text('Shuffle the deck and deal 10 cards face down to each player. The remaining deck is placed face down in the center, forming the draw pile. Flip the top card of the draw pile over to reveal the discard pile.'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK')
+                              )
+                          ]
+                        )
+                      ),
+                  child: const Text('Setup')
           ),
-                    ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const RulePage()),
-                    );
-                  },
-                  child: const Text("Rules")
+                            ElevatedButton(
+                  onPressed: 
+                    () => showDialog<String>(                     
+                      context: context,
+                      builder:
+                        (BuildContext context) => AlertDialog(
+                          title: const Text('Rules'),
+                          content: const Text('At the beginning of your turn you will draw a card from draw pile. At the end of your turn you will discard a card into the discard pile. During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase. Requirements can include a run(a sequence of cards of the same suit ascending or descending), or a set(3 or 4 of the same number). Once you discard all your cards for the current phase, you will move onto the next phase. The player to complete all 10 phases first wins!'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK')
+                              )
+                          ]
+                        )
+                      ),
+                  child: const Text('Rules')
           ),
-          ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SpecialCardsPage()),
-                    );
-                  },
-                  child: const Text("Special Cards")
+                                      ElevatedButton(
+                  onPressed: 
+                    () => showDialog<String>(                     
+                      context: context,
+                      builder:
+                        (BuildContext context) => AlertDialog(
+                          title: const Text('Special Cards'),
+                          content: const Text('Wild Card: Can be played as any number or color to complete a run or set Skip Card: Place this card on top of the discard pile to skip the next player\'s turn. The next player draws 2 cards and completes their turn.'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, 'OK'),
+                              child: const Text('OK')
+                              )
+                          ]
+                        )
+                      ),
+                  child: const Text('Special Cards')
           ),
-        ],
-      ),           
+        ]
+      ),
     );
   }
 }
@@ -543,275 +575,3 @@ void didChangeDependencies() {
   }
 }
 
-class ObjectivePage extends StatelessWidget {
-  const ObjectivePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment:MainAxisAlignment.center,
-        children: [
-          Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text(
-                      "Be the first player to complete all ten phases by discarding your entire hand",
-                      style: TextStyle(fontSize:20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text(
-                      "according to the specific requirements of the current phase.",
-                      style: TextStyle(fontSize:20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "The player to complete all 10 phases first wins!",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-        ],
-      ),           
-    );
-  }
-}
-
-class SetupPage extends StatelessWidget {
-  const SetupPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisAlignment:MainAxisAlignment.center,
-        children: [
-           Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                    Text(
-                      "Shuffle the deck and deal 10 cards face down to each player",
-                      style: TextStyle(fontSize:20),
-                    
-                    ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "The remaining deck is placed face down in the center, forming the draw pile",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Flip the top card of the draw pile over to reveal the discard pile",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-
-
-        ],
-      ),           
-    );
-  }
-}
-
-class RulePage extends StatelessWidget {
-  const RulePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned(
-            top: 100,
-            left: 150,
-            child: Transform.rotate(
-              angle: -0.2,
-              child: Image.asset('assets/run.png',
-              width:300,
-              height:100,
-              )
-            )
-          ),
-          Positioned(
-            top: 100,
-            right: 150,
-            child: Transform.rotate(
-              angle: 0.2,
-              child: Image.asset('assets/set.png',
-              width:300,
-              height:100,
-              )
-            )
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "At the beginning of your turn you will draw a card from draw pile",
-                    style: TextStyle(fontSize:20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "At the end of your turn you will discard a card into the discard pile",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "During your turn you will attempt to discard as many cards ",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "as you can while meeting the requirements of the current phase",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Requirements can include... ",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "a run(a sequence of cards of the same suit ascending or descending),",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "or a set(3 or 4 of the same number)",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Once you discard all your cards for the current phase, you will move onto the next phase",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "The player to complete all 10 phases first wins!",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              ),
-              ]
-            )
-          )
-        ]
-      )
-    );
-  }
-}
-
-class SpecialCardsPage extends StatelessWidget {
-  const SpecialCardsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-    body: Stack(
-      children: [
-        Positioned(
-          top: 200,
-          left: 100,
-          child: Transform.rotate(
-            angle: -0.2,
-            child: Image.asset('assets/wild.png',
-            width:100,
-            height:200,
-            )
-         )
-        ),
-        Positioned(
-          bottom: 200,
-          right: 100,
-          child: Transform.rotate(
-            angle:0.2,
-            child: Image.asset('assets/skip.png',
-            width: 100,
-            height:200,
-            )  
-          )        
-        ),
-      Center(
-           child: 
-      Column(
-        mainAxisAlignment:MainAxisAlignment.center,
-        children: [
-          Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Wild Card: Can be played as any number or color to complete a run or set",
-                    style: TextStyle(fontSize:20),
-                    )
-                ],
-              ),
-              Row(
-                mainAxisAlignment:MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Skip Card: The next player draws 2 and completes their turn",
-                    style: TextStyle(fontSize: 20),
-                    )
-                ],
-              )
-        ]
-      )
-      )
-      ]
-    )
-    );
-  }
-}
