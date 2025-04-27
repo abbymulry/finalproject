@@ -242,7 +242,7 @@ class Game {
     for (var group in cardGroupObjects) {
       for (var card in group) {
         // remove from hand
-        currentPlayer.hand.removeWhere((c) => c.id == card.id);
+        currentPlayer.hand.removeWhere((c) => c?.id == card.id);
       }
       // add to completed phases
       currentPlayer.completedPhases.add(group);
@@ -343,6 +343,10 @@ class Game {
     finishers.sort((a, b) => a.score.compareTo(b.score));
     return finishers.first;
   }
+}
+
+extension on Object? {
+  get id => null;
 }
 
 // possible states for the game
