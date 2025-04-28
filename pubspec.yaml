@@ -113,6 +113,7 @@ flutter:
     - assets/set.png
     - assets/wild.png
     - assets/run.png
+    - assets/Phase10Logo.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

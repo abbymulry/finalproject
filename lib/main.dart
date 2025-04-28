@@ -320,6 +320,9 @@ class HelpPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // ADDING THE LOGO HERE
+                Image.asset('assets/Phase10Logo.png', height: 100),
+                const SizedBox(height: 40),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
