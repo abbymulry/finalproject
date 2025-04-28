@@ -162,6 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
   static const List<Widget> _pages = <Widget>[
     PlayPage(),
     HelpPage(),
+    // ScorePage()
   ];
 
   void _onItemTapped(int index) {
@@ -199,6 +200,21 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+// class ScorePage extends StatelessWidget{
+//   const ScorePage({super.key});
+
+//   @override
+//   Widget build(BuildContext context)
+//   {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text("Score Page"),
+//       ),
+//       body: Center(),
+//     );
+//   }
+// }
 
 class GameSession {
   static final GameSession _instance = GameSession._internal();
