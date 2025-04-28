@@ -151,8 +151,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Phase 10 Game',
       theme: ThemeData(
-        colorScheme:
-            ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 7, 100, 186)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 7, 100, 186),
+        ),
         useMaterial3: true,
       ),
       home: const MyHomePage(),
@@ -170,10 +171,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int pageIndex = 0;
 
-  static const List<Widget> _pages = <Widget>[
-    PlayPage(),
-    HelpPage(),
-  ];
+  static const List<Widget> _pages = <Widget>[PlayPage(), HelpPage()];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -189,28 +187,19 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
       ),
-      body: Container(
-  color: Colors.white,
-  child: _pages[pageIndex],
-      ),
+      body: Container(color: Colors.white, child: _pages[pageIndex]),
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.play_circle),
-            label: 'Play',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.help),
-            label: 'Help',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: 'Play'),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
         ],
         currentIndex: pageIndex,
         onTap: _onItemTapped,
         unselectedItemColor: Colors.grey,
         selectedItemColor: Theme.of(context).colorScheme.primary,
       ),
-      );
+    );
   }
 }
 
@@ -236,69 +225,62 @@ class PlayPage extends StatelessWidget {
           children: [
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+                backgroundColor: WidgetStatePropertyAll(
+                  ProjectPalette().lightGray,
+                ),
               ),
-  onPressed: () {
-    final game = GameEngine([
-  Player('Bob'),
-  Player('Alice'),
-]);
-GameSession().currentGame = game;
+              onPressed: () {
+                final game = GameEngine([Player('Bob'), Player('Alice')]);
+                GameSession().currentGame = game;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => GameScreen(engine: game),
-      ),
-    );
-  },
-  child: Text(
-    "Start New Game",
-    style: TextStyle(
-      color: ProjectPalette().black,
-    ),
-    ),
-),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                );
+              },
+              child: Text(
+                "Start New Game",
+                style: TextStyle(color: ProjectPalette().black),
+              ),
+            ),
 
-  const SizedBox(height: 16),
-  ElevatedButton(
-    style: ButtonStyle(
-      backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
-    ),
-    onPressed: () {
-      final game = GameSession().currentGame;
-      if (game != null) {
-       Navigator.push(
-         context,
-          MaterialPageRoute(
-            builder: (_) => GameScreen(engine: game),
-          ),
-       );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text("No game in progress.")),
-        );
-     }
-   },
-  child: Text(
-    "Continue Game",
-    style: TextStyle(
-      color: ProjectPalette().black,
-    )
-    ),
-),
             const SizedBox(height: 16),
             ElevatedButton(
               style: ButtonStyle(
-                backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+                backgroundColor: WidgetStatePropertyAll(
+                  ProjectPalette().lightGray,
+                ),
+              ),
+              onPressed: () {
+                final game = GameSession().currentGame;
+                if (game != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("No game in progress.")),
+                  );
+                }
+              },
+              child: Text(
+                "Continue Game",
+                style: TextStyle(color: ProjectPalette().black),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  ProjectPalette().lightGray,
+                ),
               ),
               onPressed: () {},
               child: Text(
                 "Join Game",
-                style: TextStyle(
-                  color: ProjectPalette().black,
-                ),
-                ),
+                style: TextStyle(color: ProjectPalette().black),
+              ),
             ),
           ],
         ),
@@ -310,85 +292,125 @@ GameSession().currentGame = game;
 class HelpPage extends StatelessWidget {
   const HelpPage({super.key});
 
+  void _showHelpDialog(BuildContext context, String title, String content) {
+    showDialog<String>(
+      context: context,
+      builder:
+          (BuildContext context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.pop(context, 'OK'),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment:MainAxisAlignment.center,
-        children: [
-        ElevatedButton(
-                  onPressed: 
-                    () => showDialog<String>(                     
-                      context: context,
-                      builder:
-                        (BuildContext context) => AlertDialog(
-                          title: const Text('Objective'),
-                          content: const Text('Be the first player to complete all ten phases by discarding your entire hand according to the specific requirements of the current phase. The player to complete all 10 phases first wins!'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK')
-                              )
-                          ]
-                        )
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed:
+                      () => _showHelpDialog(
+                        context,
+                        'Objective',
+                        'Be the first player to complete all ten phases by discarding your entire hand according to the specific requirements of the current phase. The player to complete all 10 phases first wins!',
                       ),
-                  child: const Text('Objective')
-          ),
-                  ElevatedButton(
-                  onPressed: 
-                    () => showDialog<String>(                     
-                      context: context,
-                      builder:
-                        (BuildContext context) => AlertDialog(
-                          title: const Text('Setup'),
-                          content: const Text('Shuffle the deck and deal 10 cards face down to each player. The remaining deck is placed face down in the center, forming the draw pile. Flip the top card of the draw pile over to reveal the discard pile.'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK')
-                              )
-                          ]
-                        )
+                  child: const Text('Objective'),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed:
+                      () => _showHelpDialog(
+                        context,
+                        'Setup',
+                        'Shuffle the deck and deal 10 cards face down to each player. The remaining deck is placed face down in the center, forming the draw pile. Flip the top card of the draw pile over to reveal the discard pile.',
                       ),
-                  child: const Text('Setup')
-          ),
-                            ElevatedButton(
-                  onPressed: 
-                    () => showDialog<String>(                     
-                      context: context,
-                      builder:
-                        (BuildContext context) => AlertDialog(
-                          title: const Text('Rules'),
-                          content: const Text('At the beginning of your turn you will draw a card from draw pile. At the end of your turn you will discard a card into the discard pile. During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase. Requirements can include a run(a sequence of cards of the same suit ascending or descending), or a set(3 or 4 of the same number). Once you discard all your cards for the current phase, you will move onto the next phase. The player to complete all 10 phases first wins!'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK')
-                              )
-                          ]
-                        )
+                  child: const Text('Setup'),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed:
+                      () => _showHelpDialog(
+                        context,
+                        'Rules',
+                        'At the beginning of your turn you will draw a card from the draw pile. At the end of your turn you will discard a card into the discard pile. During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase. Requirements can include a run (a sequence of cards of the same suit ascending or descending), or a set (3 or 4 of the same number). Once you discard all your cards for the current phase, you will move onto the next phase. The player to complete all 10 phases first wins!',
                       ),
-                  child: const Text('Rules')
-          ),
-                                      ElevatedButton(
-                  onPressed: 
-                    () => showDialog<String>(                     
-                      context: context,
-                      builder:
-                        (BuildContext context) => AlertDialog(
-                          title: const Text('Special Cards'),
-                          content: const Text('Wild Card: Can be played as any number or color to complete a run or set Skip Card: Place this card on top of the discard pile to skip the next player\'s turn. The next player draws 2 cards and completes their turn.'),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, 'OK'),
-                              child: const Text('OK')
-                              )
-                          ]
-                        )
+                  child: const Text('Rules'),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed:
+                      () => _showHelpDialog(
+                        context,
+                        'Special Cards',
+                        'Wild Card: Can be played as any number or color to complete a run or set.\n\nSkip Card: Place this card on top of the discard pile to skip the next player\'s turn. The next player draws 2 cards and completes their turn.',
                       ),
-                  child: const Text('Special Cards')
+                  child: const Text('Special Cards'),
+                ),
+              ],
+            ),
           ),
-        ]
+        ),
       ),
     );
   }
@@ -408,77 +430,76 @@ class _GameScreenState extends State<GameScreen> {
     final player = widget.engine.currentPlayer;
     final String userName = 'Bob';
 
-void _handleAiTurn() async {
-  final ai = widget.engine.currentPlayer;
+    void _handleAiTurn() async {
+      final ai = widget.engine.currentPlayer;
 
-  await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(seconds: 1));
 
-  if (widget.engine.deck.isEmpty) return;
+      if (widget.engine.deck.isEmpty) return;
 
-  setState(() {
-    ai.drawCard(widget.engine.deck);
-  });
+      setState(() {
+        ai.drawCard(widget.engine.deck);
+      });
 
-  await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
 
-  setState(() {
-    ai.attemptPhase();
-  });
+      setState(() {
+        ai.attemptPhase();
+      });
 
-  await Future.delayed(const Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
 
-  if (ai.hand.isNotEmpty) {
-    setState(() {
-      ai.discard(ai.hand.first, widget.engine.discardPile);
-    });
-  }
+      if (ai.hand.isNotEmpty) {
+        setState(() {
+          ai.discard(ai.hand.first, widget.engine.discardPile);
+        });
+      }
 
-  void _endTurn() {
-  setState(() {
-    widget.engine.nextTurn();
-  });
+      void _endTurn() {
+        setState(() {
+          widget.engine.nextTurn();
+        });
 
-  if (widget.engine.currentPlayer.name != 'Bob') {
-    _handleAiTurn();
-  }
-}
-
-  if (ai.hasEmptyHand) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${ai.name} wins the round!')),
-    );
-    ai.currentPhase++;
-    widget.engine.resetHands();
-  }
-
-  setState(() {
-    widget.engine.nextTurn();
-  });
-}
-
-ElevatedButton(
-  onPressed: player.name == userName
-      ? () {
-          setState(() {
-            player.drawCard(widget.engine.deck);
-          });
+        if (widget.engine.currentPlayer.name != 'Bob') {
+          _handleAiTurn();
         }
-      : null, // Disable if not user
-  child: const Text('Draw Card'),
-);
+      }
 
+      if (ai.hasEmptyHand) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${ai.name} wins the round!')));
+        ai.currentPhase++;
+        widget.engine.resetHands();
+      }
 
-
-@override
-void didChangeDependencies() {
-  super.didChangeDependencies();
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (widget.engine.currentPlayer.name != userName) {
-      _handleAiTurn();
+      setState(() {
+        widget.engine.nextTurn();
+      });
     }
-  });
-}
+
+    ElevatedButton(
+      onPressed:
+          player.name == userName
+              ? () {
+                setState(() {
+                  player.drawCard(widget.engine.deck);
+                });
+              }
+              : null, // Disable if not user
+      child: const Text('Draw Card'),
+    );
+
+    @override
+    void didChangeDependencies() {
+      super.didChangeDependencies();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (widget.engine.currentPlayer.name != userName) {
+          _handleAiTurn();
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -509,61 +530,76 @@ void didChangeDependencies() {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: player.hand
-                  .map(
-                    (card) => ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.black,
-                      ),
-                      onPressed: player.name == userName
-                          ? () {
-                              setState(() {
-                                player.discard(card, widget.engine.discardPile);
-                                if (player.hasEmptyHand) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('${player.name} wins the round!')),
-                                  );
-                                  player.currentPhase++;
-                                  widget.engine.resetHands();
-                                }
-                                widget.engine.nextTurn();
-                              });
-                            }
-                          : null,
-                      child: Text(card.toString()),
-                    ),
-                  )
-                  .toList(),
+              children:
+                  player.hand
+                      .map(
+                        (card) => ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.black,
+                          ),
+                          onPressed:
+                              player.name == userName
+                                  ? () {
+                                    setState(() {
+                                      player.discard(
+                                        card,
+                                        widget.engine.discardPile,
+                                      );
+                                      if (player.hasEmptyHand) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              '${player.name} wins the round!',
+                                            ),
+                                          ),
+                                        );
+                                        player.currentPhase++;
+                                        widget.engine.resetHands();
+                                      }
+                                      widget.engine.nextTurn();
+                                    });
+                                  }
+                                  : null,
+                          child: Text(card.toString()),
+                        ),
+                      )
+                      .toList(),
             ),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  onPressed: player.name == userName
-                      ? () {
-                          setState(() {
-                            player.drawCard(widget.engine.deck);
-                          });
-                        }
-                      : null,
+                  onPressed:
+                      player.name == userName
+                          ? () {
+                            setState(() {
+                              player.drawCard(widget.engine.deck);
+                            });
+                          }
+                          : null,
                   child: const Text("Draw Card"),
                 ),
                 ElevatedButton(
-                  onPressed: player.name == userName && !player.hasLaidDown
-                      ? () {
-                          final success = player.attemptPhase();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success ? 'Phase completed!' : 'Phase attempt failed.',
+                  onPressed:
+                      player.name == userName && !player.hasLaidDown
+                          ? () {
+                            final success = player.attemptPhase();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  success
+                                      ? 'Phase completed!'
+                                      : 'Phase attempt failed.',
+                                ),
                               ),
-                            ),
-                          );
-                          setState(() {});
-                        }
-                      : null,
+                            );
+                            setState(() {});
+                          }
+                          : null,
                   child: const Text("Attempt Phase"),
                 ),
               ],
@@ -574,4 +610,3 @@ void didChangeDependencies() {
     );
   }
 }
-
