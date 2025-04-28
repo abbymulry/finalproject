@@ -172,6 +172,14 @@ class Game {
     // remove card from hand and add to discard pile
     final card = currentPlayer.hand.removeAt(cardIndex);
     discardPile.add(card);
+
+    // handle skip card effect
+    if (card.type == CardType.skip) {
+      // get next player
+      int nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      // mark them skipped for next turn
+      players[nextPlayerIndex].isSkipped = true;
+    }
     
     // check if player has won the round
     if (currentPlayer.hand.isEmpty) {
@@ -193,8 +201,14 @@ class Game {
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
     
     // check if next player has a skip effect
-    // need to implement an isSkipped method or something like that, also need to put it in my player.dart file
-    
+    if (currentPlayer.isSkipped) {
+      // reset skip status
+      currentPlayer.isSkipped = false;
+
+      // skip player's turn by moving to next player's index
+      currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    }
+
     // update timestamp
     lastUpdated = DateTime.now();
   }
@@ -242,7 +256,7 @@ class Game {
     for (var group in cardGroupObjects) {
       for (var card in group) {
         // remove from hand
-        currentPlayer.hand.removeWhere((c) => c.id == card.id);
+        currentPlayer.hand.removeWhere((c) => c?.id == card.id);
       }
       // add to completed phases
       currentPlayer.completedPhases.add(group);
@@ -265,6 +279,9 @@ class Game {
         // other players get penalty points
         player.score += player.calculateHandScore();
       }
+      // remove skipped effect on all players at end of round
+      player.isSkipped = false;
+
     }
     
     // check if game is over (any player completed phase 10)
@@ -343,6 +360,10 @@ class Game {
     finishers.sort((a, b) => a.score.compareTo(b.score));
     return finishers.first;
   }
+}
+
+extension on Object? {
+  get id => null;
 }
 
 // possible states for the game
