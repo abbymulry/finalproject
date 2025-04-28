@@ -530,86 +530,76 @@ class _GameScreenState extends State<GameScreen> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children:
-                  player.hand
-                      .map(
-                        (card) => ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.black,
-                          ),
-                          onPressed:
-                              player.name == userName
-                                  ? () {
-                                    setState(() {
-                                      player.discard(
-                                        card,
-                                        widget.engine.discardPile,
-                                      );
-                                      if (player.hasEmptyHand) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${player.name} wins the round!',
-                                            ),
-                                          ),
-                                        );
-                                        player.currentPhase++;
-                                        widget.engine.resetHands();
-                                      }
-                                      widget.engine.nextTurn();
-                                    });
-                                  }
-                                  : null,
-                          child: Text(card.toString()),
-                        ),
-                      )
-                      .toList(),
-            ),
+            playerHand(player, userName, context),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed:
-                      player.name == userName
-                          ? () {
-                            setState(() {
-                              player.drawCard(widget.engine.deck);
-                            });
-                          }
-                          : null,
-                  child: const Text("Draw Card"),
-                ),
-                ElevatedButton(
-                  onPressed:
-                      player.name == userName && !player.hasLaidDown
-                          ? () {
-                            final success = player.attemptPhase();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  success
-                                      ? 'Phase completed!'
-                                      : 'Phase attempt failed.',
-                                ),
-                              ),
-                            );
-                            setState(() {});
-                          }
-                          : null,
-                  child: const Text("Attempt Phase"),
-                ),
-              ],
-            ),
+            playerControl(player, userName, context),
           ],
         ),
       ),
+    );
+  }
+
+  Wrap playerHand(Player player, String userName, BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children:
+      player.hand.map((card) => ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black,),
+        onPressed:
+        player.name == userName ? () {
+          setState(() {
+            player.discard(card, widget.engine.discardPile,);
+            if (player.hasEmptyHand) {
+              ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('${player.name} wins the round!',),),);
+              player.currentPhase++;
+              widget.engine.resetHands();
+            }
+          widget.engine.nextTurn();
+          });
+        } : null,
+        child: Text(card.toString()),
+        ),
+      ).toList(),
+    );
+  }
+
+  Row playerControl(Player player, String userName, BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        drawCard(player, userName),
+        attemptPhase(player, userName, context),
+      ],
+    );
+  }
+
+  ElevatedButton drawCard(Player player, String userName) {
+    return ElevatedButton(
+      onPressed:
+        player.name == userName ? () {
+          setState(() {
+            player.drawCard(widget.engine.deck);
+          });
+        } : null,
+      child: const Text("Draw Card"),
+    );
+  }
+
+  ElevatedButton attemptPhase(Player player, String userName, BuildContext context) {
+    return ElevatedButton(
+      onPressed:
+      player.name == userName && !player.hasLaidDown
+      ? () {
+        final success = player.attemptPhase();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Phase completed!' : 'Phase attempt failed.',),
+            ),
+          );
+        setState(() {});
+      } : null,
+      child: const Text("Attempt Phase"),
     );
   }
 }
