@@ -1,4 +1,4 @@
-import 'package:finalproject/models/card.dart'; // assuming you have a real Card class elsewhere
+import 'package:finalproject/models/card.dart'; 
 
 class Player {
   final String id;
@@ -8,6 +8,7 @@ class Player {
   int currentPhase;
   int score;
   bool hasDrawn;
+  bool isSkipped;
   
   Player({
     required this.id,
@@ -17,6 +18,7 @@ class Player {
     this.currentPhase = 1,
     this.score = 0,
     this.hasDrawn = false,
+    this.isSkipped = false,
   })  : hand = hand ?? [],
         completedPhases = completedPhases ?? [];
   
@@ -33,6 +35,7 @@ class Player {
       currentPhase: json['currentPhase'],
       score: json['score'],
       hasDrawn: json['hasDrawn'],
+      isSkipped: json['isSkipped'] ?? false,
     );
   }
   
@@ -47,6 +50,7 @@ class Player {
       'currentPhase': currentPhase,
       'score': score,
       'hasDrawn': hasDrawn,
+      'isSkipped': isSkipped,
     };
   }
   
