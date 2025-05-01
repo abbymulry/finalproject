@@ -256,7 +256,7 @@ class Game {
     for (var group in cardGroupObjects) {
       for (var card in group) {
         // remove from hand
-        currentPlayer.hand.removeWhere((c) => c?.id == card.id);
+        currentPlayer.hand.removeWhere((c) => c.id == card.id);
       }
       // add to completed phases
       currentPlayer.completedPhases.add(group);
