@@ -211,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// class ScorePage extends StatelessWidget{
+//Class ScorePage extends StatelessWidget{
 //   const ScorePage({super.key});
 
 //   @override
