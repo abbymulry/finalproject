@@ -44,7 +44,7 @@ class CardModel {
   String toString() {
     if (type == CardType.wild) return 'WILD';
     if (type == CardType.skip) return 'SKIP';
-    return '$color $number';
+    return '$color $number';
   }
 }
 
@@ -72,7 +72,14 @@ class Deck {
   }
 
   void shuffle() => _cards.shuffle();
-  CardModel draw() => _cards.removeLast();
+  
+  CardModel draw() {
+    if (_cards.isEmpty) {
+      throw StateError('Cannot draw from an empty deck');
+    }
+    return _cards.removeLast();
+  }
+  
   bool get isEmpty => _cards.isEmpty;
 }
 
@@ -85,10 +92,18 @@ class Player {
   Player(this.name);
 
   void drawCard(Deck deck) {
-    hand.add(deck.draw());
+    try {
+      hand.add(deck.draw());
+    } catch (e) {
+      print('Error drawing card: $e');
+      throw Exception('Failed to draw card: $e');
+    }
   }
 
   void discard(CardModel card, List<CardModel> discardPile) {
+    if (!hand.contains(card)) {
+      throw ArgumentError('Cannot discard card that is not in hand');
+    }
     hand.remove(card);
     discardPile.add(card);
   }
@@ -117,30 +132,53 @@ class GameEngine {
   int currentPlayerIndex = 0;
 
   GameEngine(this.players) {
-    for (var p in players) {
-      for (int i = 0; i < 10; i++) {
-        p.drawCard(deck);
-      }
+    if (players.isEmpty) {
+      throw ArgumentError('Game must have at least one player');
     }
-    discardPile.add(deck.draw());
+    
+    try {
+      for (var p in players) {
+        for (int i = 0; i < 10; i++) {
+          p.drawCard(deck);
+        }
+      }
+      if (deck.isEmpty) {
+        throw StateError('Deck is empty, cannot initialize discard pile');
+      }
+      discardPile.add(deck.draw());
+    } catch (e) {
+      print('Error initializing game: $e');
+      throw Exception('Failed to initialize game: $e');
+    }
   }
 
   Player get currentPlayer => players[currentPlayerIndex];
 
   void nextTurn() {
+    if (players.isEmpty) {
+      throw StateError('No players in game');
+    }
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
   }
 
   void resetHands() {
-    for (var p in players) {
-      p.hand.clear();
-      for (int i = 0; i < 10; i++) {
-        p.drawCard(deck);
+    try {
+      for (var p in players) {
+        p.hand.clear();
+        for (int i = 0; i < 10; i++) {
+          p.drawCard(deck);
+        }
+        p.hasLaidDown = false;
       }
-      p.hasLaidDown = false;
+      discardPile.clear();
+      if (deck.isEmpty) {
+        throw StateError('Deck is empty, cannot reset hands');
+      }
+      discardPile.add(deck.draw());
+    } catch (e) {
+      print('Error resetting hands: $e');
+      throw Exception('Failed to reset hands: $e');
     }
-    discardPile.clear();
-    discardPile.add(deck.draw());
   }
 }
 
@@ -148,7 +186,12 @@ class GameEngine {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('Firebase initialization error: $e');
+    // Continue running the app even if Firebase fails
+  }
   runApp(
     MultiProvider(
       providers: [
@@ -283,13 +326,19 @@ class PlayPage extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                final game = GameEngine([Player('Bob'), Player('Alice')]);
-                GameSession().currentGame = game;
+                try {
+                  final game = GameEngine([Player('Bob'), Player('Alice')]);
+                  GameSession().currentGame = game;
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
-                );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error starting game: $e')),
+                  );
+                }
               },
               child: Text(
                 "Start New Game",
@@ -305,15 +354,21 @@ class PlayPage extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                final game = GameSession().currentGame;
-                if (game != null) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
-                  );
-                } else {
+                try {
+                  final game = GameSession().currentGame;
+                  if (game != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("No game in progress.")),
+                    );
+                  }
+                } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("No game in progress.")),
+                    SnackBar(content: Text('Error continuing game: $e')),
                   );
                 }
               },
@@ -481,6 +536,14 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  void _handleError(String message, Object error) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$message: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final player = widget.engine.currentPlayer;
@@ -489,49 +552,56 @@ class _GameScreenState extends State<GameScreen> {
     void _handleAiTurn() async {
       final ai = widget.engine.currentPlayer;
 
-      await Future.delayed(const Duration(seconds: 1));
+      try {
+        await Future.delayed(const Duration(seconds: 1));
 
-      if (widget.engine.deck.isEmpty) return;
+        if (widget.engine.deck.isEmpty) {
+          _handleError('Deck is empty', 'Cannot draw card');
+          return;
+        }
 
-      setState(() {
-        ai.drawCard(widget.engine.deck);
-      });
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      setState(() {
-        ai.attemptPhase();
-      });
-
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      if (ai.hand.isNotEmpty) {
         setState(() {
-          ai.discard(ai.hand.first, widget.engine.discardPile);
+          ai.drawCard(widget.engine.deck);
         });
-      }
 
-      void _endTurn() {
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        setState(() {
+          ai.attemptPhase();
+        });
+
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        if (ai.hand.isNotEmpty) {
+          setState(() {
+            ai.discard(ai.hand.first, widget.engine.discardPile);
+          });
+        }
+
+        void _endTurn() {
+          setState(() {
+            widget.engine.nextTurn();
+          });
+
+          if (widget.engine.currentPlayer.name != 'Bob') {
+            _handleAiTurn();
+          }
+        }
+
+        if (ai.hasEmptyHand) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('${ai.name} wins the round!')));
+          ai.currentPhase++;
+          widget.engine.resetHands();
+        }
+
         setState(() {
           widget.engine.nextTurn();
         });
-
-        if (widget.engine.currentPlayer.name != 'Bob') {
-          _handleAiTurn();
-        }
+      } catch (e) {
+        _handleError('AI turn error', e);
       }
-
-      if (ai.hasEmptyHand) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${ai.name} wins the round!')));
-        ai.currentPhase++;
-        widget.engine.resetHands();
-      }
-
-      setState(() {
-        widget.engine.nextTurn();
-      });
     }
 
     ElevatedButton(
@@ -551,8 +621,12 @@ class _GameScreenState extends State<GameScreen> {
       super.didChangeDependencies();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (widget.engine.currentPlayer.name != userName) {
-          _handleAiTurn();
+        try {
+          if (widget.engine.currentPlayer.name != userName) {
+            _handleAiTurn();
+          }
+        } catch (e) {
+          _handleError('Error starting turn', e);
         }
       });
     }
@@ -579,7 +653,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "Top of Discard Pile: ${widget.engine.discardPile.last}",
+              "Top of Discard Pile: ${widget.engine.discardPile.isNotEmpty ? widget.engine.discardPile.last : 'None'}",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -601,15 +675,19 @@ class _GameScreenState extends State<GameScreen> {
         style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black,),
         onPressed:
         player.name == userName ? () {
-          setState(() {
-            player.discard(card, widget.engine.discardPile,);
-            if (player.hasEmptyHand) {
-              ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('${player.name} wins the round!',),),);
-              player.currentPhase++;
-              widget.engine.resetHands();
-            }
-          widget.engine.nextTurn();
-          });
+          try {
+            setState(() {
+              player.discard(card, widget.engine.discardPile,);
+              if (player.hasEmptyHand) {
+                ScaffoldMessenger.of(context,).showSnackBar(SnackBar(content: Text('${player.name} wins the round!',),),);
+                player.currentPhase++;
+                widget.engine.resetHands();
+              }
+            widget.engine.nextTurn();
+            });
+          } catch (e) {
+            _handleError('Error discarding card', e);
+          }
         } : null,
         child: Text(card.toString()),
         ),
@@ -631,9 +709,17 @@ class _GameScreenState extends State<GameScreen> {
     return ElevatedButton(
       onPressed:
         player.name == userName ? () {
-          setState(() {
-            player.drawCard(widget.engine.deck);
-          });
+          try {
+            if (widget.engine.deck.isEmpty) {
+              _handleError('Deck is empty', 'Cannot draw card');
+              return;
+            }
+            setState(() {
+              player.drawCard(widget.engine.deck);
+            });
+          } catch (e) {
+            _handleError('Error drawing card', e);
+          }
         } : null,
       child: const Text("Draw Card"),
     );
@@ -644,13 +730,17 @@ class _GameScreenState extends State<GameScreen> {
       onPressed:
       player.name == userName && !player.hasLaidDown
       ? () {
-        final success = player.attemptPhase();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(success ? 'Phase completed!' : 'Phase attempt failed.',),
-            ),
-          );
-        setState(() {});
+        try {
+          final success = player.attemptPhase();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(success ? 'Phase completed!' : 'Phase attempt failed.',),
+              ),
+            );
+          setState(() {});
+        } catch (e) {
+          _handleError('Error attempting phase', e);
+        }
       } : null,
       child: const Text("Attempt Phase"),
     );
