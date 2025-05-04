@@ -15,17 +15,29 @@ class AuthService {
 
   // get user profile from firestore
   Future<UserModel?> getUserProfile(String uid) async {
-    try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) {
-        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
-      }
-      return null;
-    } catch (e) {
-      print('error getting user profile: $e');
-      return null;
+  try {
+    DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+    
+    if (doc.exists) {
+      Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+      return UserModel.fromMap(data);
+    } else {
+      // create a basic profile if it doesn't exist
+      UserModel newUser = UserModel(
+        uid: uid,
+        email: _auth.currentUser?.email ?? '',
+        displayName: _auth.currentUser?.email?.split('@')[0] ?? '',
+      );
+      
+      // save the new profile
+      await createUserProfile(newUser);
+      return newUser;
     }
+  } catch (e) {
+    print('error getting user profile: $e');
+    return null;
   }
+}
 
   // create user in firestore
   Future<void> createUserProfile(UserModel user) async {
@@ -37,26 +49,41 @@ class AuthService {
   }
 
   // sign in with email and password
-  Future<UserModel?> signInWithEmailAndPassword(String email, String password) async {
-    try {
-      // attempt to sign in
-      UserCredential result = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+Future<UserModel?> signInWithEmailAndPassword(String email, String password) async {
+  try {
+    // attempt to sign in
+    UserCredential result = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    User? user = result.user;
+    
+    if (user != null) {
+      // create a basic user model directly from the Firebase user -> avoids the type cast error by not depending on Firestore initially
+      UserModel basicUser = UserModel(
+        uid: user.uid,
+        email: user.email ?? '',
       );
-      User? user = result.user;
       
-      if (user != null) {
-        // get user profile from firestore
-        UserModel? profile = await getUserProfile(user.uid);
-        return profile ?? UserModel.fromFirebaseUser(user.uid, user.email ?? '');
+      // try to get the full profile, but don't fail if it's not available
+      try {
+        DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
+        if (doc.exists && doc.data() != null) {
+          return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+        }
+      } catch (e) {
+        print('error getting user profile: $e');
+        // continue with the basic user model
       }
-      return null;
-    } catch (e) {
-      print('error signing in: $e');
-      return null;
+      
+      return basicUser;
     }
+    return null;
+  } catch (e) {
+    print('error signing in: $e');
+    return null;
   }
+}
 
   // register with email and password
   Future<UserModel?> registerWithEmailAndPassword(String email, String password) async {

@@ -18,9 +18,23 @@ class AuthProvider extends ChangeNotifier {
   // check if user is logged in
   Future<void> checkCurrentUser() async {
     final user = _authService.currentUser;
+    print('Checking current user: ${user?.uid}');
     if (user != null) {
-      _user = await _authService.getUserProfile(user.uid);
+      try {
+        _user = await _authService.getUserProfile(user.uid);
+        print('Got user profile: ${_user?.email}');
+      } catch (e) {
+        print('Error getting user profile: $e');
+        // Create a basic user model if profile retrieval fails
+        _user = UserModel(
+          uid: user.uid,
+          email: user.email ?? '',
+        );
+        print('Created basic user model: ${_user?.email}');
+      }
       notifyListeners();
+    } else {
+      print('No current user found');
     }
   }
 
@@ -68,4 +82,6 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  
 }

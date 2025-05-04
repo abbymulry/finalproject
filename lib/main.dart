@@ -11,6 +11,11 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
+import 'screens/login_screen.dart';
+import 'models/user_model.dart';
+
 
 // CARD AND GAME LOGIC CLASSES
 
@@ -143,14 +148,29 @@ class GameEngine {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    
+    // check current user on startup
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      authProvider.checkCurrentUser();
+    });
+
     return MaterialApp(
       title: 'Phase 10 Game',
       theme: ThemeData(
@@ -159,7 +179,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      home: authProvider.isAuthenticated ? const MyHomePage() : const LoginScreen(),
     );
   }
 }
@@ -173,19 +193,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int pageIndex = 0;
-
+  
   static const List<Widget> _pages = <Widget>[
     PlayPage(),
     HelpPage(),
     // ScorePage()
   ];
-
+  
   void _onItemTapped(int index) {
     setState(() {
       pageIndex = index;
     });
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -193,6 +213,18 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text("Phase 10"),
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
+        actions: [
+          // Add logout button
+          TextButton.icon(
+            icon: const Icon(Icons.logout),
+            label: const Text('Logout', style: TextStyle(color: Colors.white)),
+            onPressed: () {
+              // Sign out the user
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              authProvider.signOut();
+            },
+          ),
+        ],
       ),
       body: Container(color: Colors.white, child: _pages[pageIndex]),
       bottomNavigationBar: BottomNavigationBar(
@@ -209,20 +241,18 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
 // class ScorePage extends StatelessWidget{
-//   const ScorePage({super.key});
-
-//   @override
-//   Widget build(BuildContext context)
-//   {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text("Score Page"),
-//       ),
-//       body: Center(),
-//     );
-//   }
+// const ScorePage({super.key});
+// @override
+// Widget build(BuildContext context)
+// {
+// return Scaffold(
+// appBar: AppBar(
+// title: Text("Score Page"),
+// ),
+// body: Center(),
+// );
+// }
 // }
 
 class GameSession {
