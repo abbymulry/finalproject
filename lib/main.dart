@@ -202,18 +202,28 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _hasCheckedUser = false;
 
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     
-    // check current user on startup
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authProvider.checkCurrentUser();
-    });
+    // check current user on startup only once
+    if (!_hasCheckedUser) {
+      _hasCheckedUser = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        print("Checking user once at app startup");
+        authProvider.checkCurrentUser();
+      });
+    }
 
     return MaterialApp(
       title: 'Phase 10 Game',
