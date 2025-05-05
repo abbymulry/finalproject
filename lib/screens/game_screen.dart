@@ -37,6 +37,8 @@ class _GameScreenState extends State<GameScreen> {
           _handleAiTurn();
         } else {
           print('[PHASE10] It is player turn, waiting for user input');
+          // log player hand at the start of the game
+          _logPlayerHand(userName, widget.engine.players[0].hand);
         }
       } catch (e) {
         _handleError('Error in post-frame callback', e);
@@ -46,6 +48,19 @@ class _GameScreenState extends State<GameScreen> {
 
   void _log(String message) {
     print('[PHASE10] $message');
+  }
+
+  // method for consistent player logging
+  void _logPlayerAction(String playerName, String action, String details) {
+    print('[PHASE10-PLAYER] $playerName $action: $details');
+  }
+
+  // method for logging player hand
+  void _logPlayerHand(String playerName, List<game_card.Card> hand) {
+    print('[PHASE10-PLAYER] $playerName current hand: ${hand.length} cards');
+    for (int i = 0; i < hand.length; i++) {
+      print('[PHASE10-PLAYER]   ${i+1}. ${hand[i]}');
+    }
   }
 
   void _handleError(String message, Object error) {
@@ -71,6 +86,9 @@ class _GameScreenState extends State<GameScreen> {
     final ai = widget.engine.currentPlayer;
     _log('AI player: ${ai.name}');
     
+    // log AI hand at the start of the round
+    _logPlayerHand(ai.name, ai.hand);
+    
     try {
       // make sure it's actually an AI player's turn
       if (ai.name == userName) {
@@ -92,7 +110,16 @@ class _GameScreenState extends State<GameScreen> {
       // AI draws a card
       _log('AI drawing card');
       setState(() {
+        _logPlayerAction(ai.name, 'drawing card from deck', '');
+        
         ai.drawCard(widget.engine.deckObject);
+        
+        // detailed logging after AI Draws
+        _logPlayerAction(ai.name, 'drew', '${ai.hand.last}');
+        _logPlayerAction(ai.name, 'hand size now', '${ai.hand.length}');
+        _logPlayerHand(ai.name, ai.hand);
+        _logPlayerAction(ai.name, 'hasDrawn set to', 'true');
+        
         _log('AI drew card: ${ai.hand.last}');
         _log('AI hasDrawn = ${ai.hasDrawn}');
       });
@@ -104,7 +131,14 @@ class _GameScreenState extends State<GameScreen> {
       // AI attempts to complete phase
       _log('AI attempting phase');
       setState(() {
+        // logging before AI attempts a phase
+        _logPlayerAction(ai.name, 'attempting phase', '');
+        
         bool success = ai.attemptPhase();
+        
+        // logging after AI attempts a phase
+        _logPlayerAction(ai.name, 'phase attempt result', success ? 'Success' : 'Failed');
+        
         _log('AI phase attempt result: ${success ? 'Success' : 'Failed'}');
         _log('AI hasLaidDown = ${ai.hasLaidDown}');
       });
@@ -115,9 +149,15 @@ class _GameScreenState extends State<GameScreen> {
 
       // AI discards a card if it has cards left
       if (ai.hand.isNotEmpty) {
+        _logPlayerAction(ai.name, 'discarding card', '${ai.hand.first}');
+        
         _log('AI discarding card: ${ai.hand.first}');
         setState(() {
           ai.discard(ai.hand.first, widget.engine.discardPile);
+        
+          _logPlayerAction(ai.name, 'discarded card, hand size now', '${ai.hand.length}');
+          _logPlayerHand(ai.name, ai.hand);
+          
           _log('Top card on discard pile: ${widget.engine.discardPile.last}');
         });
       } else {
@@ -127,6 +167,8 @@ class _GameScreenState extends State<GameScreen> {
       // check if AI won the round
       if (ai.hasEmptyHand) {
         _log('AI has empty hand, won the round');
+        _logPlayerAction(ai.name, 'has empty hand', 'won the round!');
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('${ai.name} wins the round!'))
         );
@@ -192,10 +234,21 @@ class _GameScreenState extends State<GameScreen> {
         return;
       }
       
+      // log before draw
+      _logPlayerAction(player.name, 'drawing card', 'from deck');
+      _logPlayerHand(player.name, player.hand);
+      
       setState(() {
         _drawnCard = widget.engine.drawCard();
         player.hand.add(_drawnCard!);
         _hasDrawnThisTurn = true;
+        
+        // log after draw
+        _logPlayerAction(player.name, 'drew card', '$_drawnCard from deck');
+        _logPlayerAction(player.name, 'hand size now', '${player.hand.length}');
+        _logPlayerHand(player.name, player.hand);
+        _logPlayerAction(player.name, 'hasDrawn set to', 'true');
+        
         _log('Drew card from deck: $_drawnCard');
       });
     } catch (e) {
@@ -222,10 +275,21 @@ class _GameScreenState extends State<GameScreen> {
     }
     
     try {
+      // log before draw from discard
+      _logPlayerAction(player.name, 'drawing card', 'from discard pile');
+      _logPlayerHand(player.name, player.hand);
+      
       setState(() {
         _drawnCard = widget.engine.drawFromDiscard();
         player.hand.add(_drawnCard!);
         _hasDrawnThisTurn = true;
+        
+        // log after draw from discard
+        _logPlayerAction(player.name, 'drew card', '$_drawnCard from discard');
+        _logPlayerAction(player.name, 'hand size now', '${player.hand.length}');
+        _logPlayerHand(player.name, player.hand);
+        _logPlayerAction(player.name, 'hasDrawn set to', 'true');
+        
         _log('Drew card from discard: $_drawnCard');
       });
     } catch (e) {
@@ -254,10 +318,18 @@ class _GameScreenState extends State<GameScreen> {
     }
     
     try {
+      // log before phase attempt
+      _logPlayerAction(player.name, 'attempting phase', 'with ${_selectedCards.length} cards');
+      _logPlayerAction(player.name, 'selected cards', _selectedCards.map((c) => c.toString()).join(', '));
+      
       // group cards for phase attempt
       List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
       
       bool success = widget.engine.playPhase(cardGroups);
+      
+      // log after phase attempt
+      _logPlayerAction(player.name, 'phase attempt result', success ? 'Success' : 'Failed');
+      _logPlayerAction(player.name, 'hasLaidDown', '${player.hasLaidDown}');
       
       if (success) {
         setState(() {
@@ -298,19 +370,28 @@ class _GameScreenState extends State<GameScreen> {
     _isProcessingTurn = true;
     
     try {
+      // log before discard
+      _logPlayerAction(player.name, 'discarding card', cardToDiscard.toString());
+      _logPlayerHand(player.name, player.hand);
+      
       setState(() {
         // discard the selected card
         player.discard(cardToDiscard, widget.engine.discardPile);
-        _log('Discarded card: $cardToDiscard');
+        
+        // log after discard
+        _logPlayerAction(player.name, 'discarded card, hand size now', '${player.hand.length}');
+        _logPlayerHand(player.name, player.hand);
+        _logPlayerAction(player.name, 'top card on discard pile', '${widget.engine.discardPile.last}');
         
         // check if player won the round
         if (player.hasEmptyHand) {
-          _log('Player has empty hand, won the round!');
+          _logPlayerAction(player.name, 'has empty hand', 'won the round!');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('${player.name} wins the round!'))
           );
           player.currentPhase++;
           widget.engine.resetHands();
+          _logPlayerAction(player.name, 'hands reset after win', '');
         }
         
         // reset state for next turn
@@ -319,8 +400,12 @@ class _GameScreenState extends State<GameScreen> {
         _drawnCard = null;
         _selectedCards.clear();
         
+        _logPlayerAction(player.name, 'ending turn', '');
+        
         // move to next player
         widget.engine.nextTurn();
+        
+        _logPlayerAction(widget.engine.currentPlayer.name, 'starting turn', '');
       });
       
       // allow some time for the UI to update

@@ -107,15 +107,25 @@ class Player {
   // =====================================================
   // Draw a card from the deck and add to player's hand
   // =====================================================
-  Card drawCard(Deck deck) {
-    print('[PHASE10] ${name} drawing card from deck');
-    final card = deck.draw();                // Take top card from deck
-    hand.add(card);                          // Add card to player's hand
-    print('[PHASE10] ${name} drew ${card}');
-    print('[PHASE10] ${name} hand size now: ${hand.length}');
-    hasDrawn = true;                         // Mark that player has drawn this turn
-    print('[PHASE10] ${name} hasDrawn set to ${hasDrawn}');
-    return card;                             // Return the drawn card
+  void drawCard(Deck deck) {
+    print('[PHASE10-PLAYER] ${name} drawing card from deck with ${deck.length} cards');
+    
+    try {
+      // draw card from deck
+      final card = deck.draw();
+      print('[PHASE10-PLAYER] ${name} drew ${card}');
+      
+      // add to hand
+      hand.add(card);
+      print('[PHASE10-PLAYER] ${name} hand size now: ${hand.length}');
+      
+      // set draw status
+      hasDrawn = true;
+      print('[PHASE10-PLAYER] ${name} hasDrawn set to true');
+    } catch (e) {
+      print('[PHASE10-PLAYER] ERROR: ${name} failed to draw card: $e');
+      rethrow;
+    }
   }
 
   // =====================================================

@@ -28,27 +28,27 @@ import 'deck.dart';
 class Game {
   final String id; // unique identifier for the game
   List<Player> players; // all players in the game
-  List<Card> deck; // cards available to draw
+  Deck _deckObject; // cards available to draw
   List<Card> discardPile; // cards that have been discarded
   int currentPlayerIndex; // whose turn it is
   GameState state; // waiting, playing, or finished
   List<Phase> phases; // the 10 phases and their requirements
   DateTime lastUpdated; // timestamp for synchronizing 
 
-  Deck get deckObject {
-    return Deck.fromCards(deck);
-  }
+  Deck get deckObject => _deckObject;
   
+  List<Card> get deck => _deckObject.cards;
   
   Game({
     required this.id,
     required this.players,
-    required this.deck,
+    required Deck deck,
     this.discardPile = const [],
     this.currentPlayerIndex = 0,
     this.state = GameState.waiting,
     List<Phase>? phases,
   }) : 
+    this._deckObject = deck,
     this.phases = phases ?? Phase.createAllPhases(),
     this.lastUpdated = DateTime.now();
   
@@ -57,22 +57,34 @@ class Game {
   
   // create a new game with shuffled deck and dealt cards
   factory Game.newGame({required String id, required List<Player> players}) {
-    // generate a standard phase 10 deck with all cards
-    List<Card> deck = generateDeck();
-    deck.shuffle();
+    // Generate a standard phase 10 deck with all cards
+    print('[PHASE10-GAME] Creating new game with id: $id');
     
-    // deal 10 cards to each player
+    // Create a new deck (which automatically shuffles in its constructor)
+    Deck gameDeck = Deck();
+    print('[PHASE10-GAME] New deck created with ${gameDeck.length} cards');
+    
+    // Deal 10 cards to each player
+    print('[PHASE10-GAME] Dealing cards to ${players.length} players');
     for (var player in players) {
-      player.hand = deck.take(10).toList();
-      deck = deck.skip(10).toList();
+      print('[PHASE10-GAME] Dealing 10 cards to ${player.name}');
+      player.hand = [];
+      for (int i = 0; i < 10; i++) {
+        player.hand.add(gameDeck.draw());
+      }
+      print('[PHASE10-GAME] ${player.name} now has ${player.hand.length} cards');
     }
     
-    // place first card from deck into discard pile to start
+    // Create the discard pile with the top card
+    print('[PHASE10-GAME] Setting up discard pile');
+    Card initialDiscard = gameDeck.draw();
+    print('[PHASE10-GAME] Initial discard: $initialDiscard');
+    
     return Game(
       id: id,
       players: players,
-      deck: deck,
-      discardPile: [deck.removeAt(0)],
+      deck: gameDeck,
+      discardPile: [initialDiscard],
       state: GameState.playing,
     );
   }
@@ -121,26 +133,31 @@ class Game {
   
   // draw a card from the deck
   Card drawCard() {
-    // check if deck is empty, reshuffle discard if needed
-    if (deck.isEmpty) {
-      // keep the top discard card separate
+    print('[PHASE10-GAME] Drawing card from deck with ${_deckObject.length} cards');
+    
+    // Check if deck is empty, reshuffle discard if needed
+    if (_deckObject.isEmpty) {
+      print('[PHASE10-GAME] Deck is empty, reshuffling discard pile');
+      // Keep the top discard card separate
       final topDiscard = discardPile.removeLast();
       
-      // move all other discard cards to the deck
-      deck = discardPile;
+      // Move all other discard cards to the deck
+      _deckObject.addCards(discardPile);
       discardPile = [topDiscard];
       
-      // shuffle the recycled cards
-      deck.shuffle();
+      // Shuffle the recycled cards
+      print('[PHASE10-GAME] Shuffling recycled cards');
+      _deckObject.shuffle();
     }
     
-    // take the top card from the deck
-    final card = deck.removeAt(0);
+    // Take the top card from the deck
+    final card = _deckObject.draw();
+    print('[PHASE10-GAME] Drew card: $card, ${_deckObject.length} cards remaining');
     
-    // mark that the player has drawn
+    // Mark that the player has drawn
     currentPlayer.hasDrawn = true;
     
-    // update timestamp
+    // Update timestamp
     lastUpdated = DateTime.now();
     
     return card;
@@ -286,72 +303,102 @@ class Game {
   
   // end the current round and calculate scores
   void endRound() {
+    print('[PHASE10-GAME] Ending round and calculating scores');
+    
     // calculate scores for each player
     for (var player in players) {
       if (player.hand.isEmpty) {
         // winning player advances to next phase
         player.currentPhase++;
+        print('[PHASE10-GAME] ${player.name} advances to phase ${player.currentPhase}');
       } else {
         // other players get penalty points
-        player.score += player.calculateHandScore();
+        int score = player.calculateHandScore();
+        player.score += score;
+        print('[PHASE10-GAME] ${player.name} gets ${score} penalty points, total now: ${player.score}');
       }
       // remove skipped effect on all players at end of round
       player.isSkipped = false;
-
     }
     
     // check if game is over (any player completed phase 10)
     if (players.any((p) => p.currentPhase > 10)) {
       state = GameState.finished;
+      print('[PHASE10-GAME] Game is finished!');
     } else {
       // set up next round
+      print('[PHASE10-GAME] Setting up next round');
       
-      // create and shuffle a new deck
-      List<Card> newDeck = generateDeck();
-      newDeck.shuffle();
+      // create a new Deck object instead of List<Card>
+      print('[PHASE10-GAME] Creating new deck for next round');
+      _deckObject = Deck(); // this will internally call shuffle
       
       // reset player hands
       for (var player in players) {
-        // deal 10 new cards
-        player.hand = newDeck.take(10).toList();
-        newDeck = newDeck.skip(10).toList();
+        // deal cards from the Deck object
+        print('[PHASE10-GAME] Dealing new hand to ${player.name}');
+        player.hand = [];
+        for (int i = 0; i < 10; i++) {
+          player.hand.add(_deckObject.draw());
+        }
         
         // reset draw status
         player.hasDrawn = false;
         
         // clear completed phases for the new round
         player.completedPhases = [];
+        print('[PHASE10-GAME] ${player.name} ready for next round with ${player.hand.length} cards');
       }
       
-      // set up new deck and discard pile
-      deck = newDeck;
-      discardPile = [deck.removeAt(0)];
+      // use the deck object for the discard pile
+      print('[PHASE10-GAME] Setting up discard pile for new round');
+      discardPile = [_deckObject.draw()];
+      print('[PHASE10-GAME] Initial discard: ${discardPile.last}');
       
       // winner of previous round goes first
-      currentPlayerIndex = players.indexWhere((p) => p.hand.isEmpty);
+      currentPlayerIndex = players.indexWhere((p) => p.currentPhase > p.completedPhases.length);
       if (currentPlayerIndex == -1) currentPlayerIndex = 0;
+      print('[PHASE10-GAME] ${players[currentPlayerIndex].name} goes first in the new round');
     }
     
     // update timestamp
     lastUpdated = DateTime.now();
+    print('[PHASE10-GAME] Round end complete');
   }
 
   void resetHands() {
+    print('[PHASE10-GAME] Resetting hands for all players');
+    
     try {
       for (var p in players) {
+        print('[PHASE10-GAME] Clearing hand for ${p.name}');
         p.hand.clear();
+        
+        // draw directly from the deck object
+        print('[PHASE10-GAME] Dealing 10 new cards to ${p.name}');
         for (int i = 0; i < 10; i++) {
-          p.drawCard(deckObject);
+          Card drawnCard = _deckObject.draw();
+          p.hand.add(drawnCard);
+          print('[PHASE10-GAME] Dealt card ${i+1}: ${drawnCard}');
         }
+        
         p.hasLaidDown = false;
+        print('[PHASE10-GAME] Reset hasLaidDown status for ${p.name}');
       }
+      
+      print('[PHASE10-GAME] Clearing discard pile');
       discardPile.clear();
-      if (deck.isEmpty) {
+      
+      if (_deckObject.isEmpty) {
         throw StateError('Deck is empty, cannot reset hands');
       }
-      discardPile.add(deckObject.draw());
+      
+      // draw from the deck object for discard pile
+      Card discardCard = _deckObject.draw();
+      discardPile.add(discardCard);
+      print('[PHASE10-GAME] New top card on discard pile: ${discardCard}');
     } catch (e) {
-      print('Error resetting hands: $e');
+      print('[PHASE10-GAME] Error resetting hands: $e');
       throw Exception('Failed to reset hands: $e');
     }
   }
@@ -361,7 +408,7 @@ class Game {
     return {
       'id': id,
       'players': players.map((p) => p.toJson()).toList(),
-      'deck': deck.map((c) => c.toJson()).toList(),
+      'deck': _deckObject.cards.map((c) => c.toJson()).toList(),
       'discardPile': discardPile.map((c) => c.toJson()).toList(),
       'currentPlayerIndex': currentPlayerIndex,
       'state': state.index,
@@ -371,11 +418,16 @@ class Game {
   
   // create game from json for network transmission
   factory Game.fromJson(Map<String, dynamic> json) {
+    // create a deck object from the cards
+    List<Card> deckCards = (json['deck'] as List).map((c) => Card.fromJson(c as Map<String, dynamic>)).toList();
+
+    Deck deck = Deck.fromCards(deckCards);
+
     return Game(
       id: json['id'],
-      players: (json['players'] as List).map((p) => Player.fromJson(p)).toList(),
-      deck: (json['deck'] as List).map((c) => Card.fromJson(c)).toList(),
-      discardPile: (json['discardPile'] as List).map((c) => Card.fromJson(c)).toList(),
+      players: (json['players'] as List).map((p) => Player.fromJson(p as Map<String, dynamic>)).toList(),
+      deck: deck,
+      discardPile: (json['discardPile'] as List).map((c) => Card.fromJson(c as Map<String, dynamic>)).toList(),
       currentPlayerIndex: json['currentPlayerIndex'],
       state: GameState.values[json['state']],
     );
