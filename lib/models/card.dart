@@ -70,8 +70,13 @@ class Card {
   // string representation for debugging
   @override
   String toString() {
-    return '${color.name} ${type == CardType.number ? value.toString() : type.name}';
+    if (type == CardType.number) {
+      return '${color.name} $value';
+    } else {
+      return type.name;
+    }
   }
+
 }
 
 // types of cards in the game

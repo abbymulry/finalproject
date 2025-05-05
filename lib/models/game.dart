@@ -22,6 +22,7 @@
 import 'card.dart';
 import 'player.dart';
 import 'phase.dart';
+import 'deck.dart';
 
 // game class represents the entire game state
 class Game {
@@ -33,6 +34,11 @@ class Game {
   GameState state; // waiting, playing, or finished
   List<Phase> phases; // the 10 phases and their requirements
   DateTime lastUpdated; // timestamp for synchronizing 
+
+  Deck get deckObject {
+    return Deck.fromCards(deck);
+  }
+  
   
   Game({
     required this.id,
@@ -194,21 +200,31 @@ class Game {
   
   // move to the next player's turn
   void nextTurn() {
-    // reset current player's draw status
+    print('[PHASE10] nextTurn called');
+    print('[PHASE10] Current player before: ${players[currentPlayerIndex].name}');
+    print('[PHASE10] Current player hasDrawn before: ${players[currentPlayerIndex].hasDrawn}');
+    
+    // Reset current player's draw status
     currentPlayer.hasDrawn = false;
+    print('[PHASE10] Reset hasDrawn to false for ${currentPlayer.name}');
     
-    // move to next player
+    // Move to next player
     currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+    print('[PHASE10] New current player: ${players[currentPlayerIndex].name}');
     
-    // check if next player has a skip effect
+    // Check if next player has a skip effect
     if (currentPlayer.isSkipped) {
-      // reset skip status
+      print('[PHASE10] ${currentPlayer.name} is skipped!');
+      // Reset skip status
       currentPlayer.isSkipped = false;
+      print('[PHASE10] Reset isSkipped to false');
 
-      // skip player's turn by moving to next player's index
+      // Skip player's turn by moving to next player's index
       currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+      print('[PHASE10] Skipped to next player: ${players[currentPlayerIndex].name}');
     }
 
+    print('[PHASE10] Current player hasDrawn after: ${players[currentPlayerIndex].hasDrawn}');
     // update timestamp
     lastUpdated = DateTime.now();
   }
@@ -318,6 +334,26 @@ class Game {
     
     // update timestamp
     lastUpdated = DateTime.now();
+  }
+
+  void resetHands() {
+    try {
+      for (var p in players) {
+        p.hand.clear();
+        for (int i = 0; i < 10; i++) {
+          p.drawCard(deckObject);
+        }
+        p.hasLaidDown = false;
+      }
+      discardPile.clear();
+      if (deck.isEmpty) {
+        throw StateError('Deck is empty, cannot reset hands');
+      }
+      discardPile.add(deckObject.draw());
+    } catch (e) {
+      print('Error resetting hands: $e');
+      throw Exception('Failed to reset hands: $e');
+    }
   }
   
   // convert game to json for network transmission
