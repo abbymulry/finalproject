@@ -36,16 +36,109 @@ class Phase {
   // check to see if a set of cards meets this phase's requirements
   // takes a list of card groups and validates against requirements
   bool isValidPhase(List<List<Card>> cardGroups) {
+    print('[PHASE10-PHASE] Checking phase $phaseNumber with ${cardGroups.length} groups');
+
     // must have same number of groups as requirements
-    if (cardGroups.length != requirements.length) return false;
-    
+    if (cardGroups.length != requirements.length) {
+      print('[PHASE10-PHASE] Wrong number of groups: ${cardGroups.length}, expected ${requirements.length}');
+      return false;
+    }
+
     // check each group against its corresponding requirement
+    // for (int i = 0; i < requirements.length; i++) {
+    //  if (!requirements[i].meetsRequirements(cardGroups[i])) {
+    //    return false;
+    //  }
+    // }
+
+    // handle phase 1 validation specifically
+    if (phaseNumber == 1) {
+      print('[PHASE10-PHASE] Validating Phase 1 (two sets of three)');
+
+      // try first mapping
+      if (requirements[0].meetsRequirements(cardGroups[0]) && requirements[1].meetsRequirements(cardGroups[1])) {
+        print('[PHASE10-PHASE] Phase 1 Completed.');
+        return true;
+      }
+      
+      // try second mapping
+      if (requirements[0].meetsRequirements(cardGroups[1]) && requirements[1].meetsRequirements(cardGroups[0])) {
+        print('[PHASE10-PHASE] Phase 1 Completed.');
+        return true;
+      }
+
+      // handle case where we have a single combined group of 6 cards and validate it as two groups
+      if (cardGroups.length == 1 && cardGroups[0].length >= 6) {
+        print('[PHASE10-PHASE] Single card group submitted, trying to parse into distinct sets');
+
+        // split all cards into two sets of three
+        final allCards = cardGroups[0];
+
+        // group cards by value
+        Map<int, List<Card>> valueGroups = {};
+        List<Card> wildCards = [];
+
+        // separate wild cards and group others by value
+        for (var card in allCards) {
+          if (card.type == CardType.wild) {
+            wildCards.add(card);
+          } else {
+            if (!valueGroups.containsKey(card.value)) {
+              valueGroups[card.value] = [];
+            }
+            valueGroups[card.value]!.add(card);
+          }
+        }
+
+        print('[PHASE10-PHASE] Found ${valueGroups.length} different values and ${wildCards.length} wild cards');
+
+        // check which values can form sets with or without wilds
+        List<List<Card>> validSets = [];
+        valueGroups.forEach((value, cards) {
+          print('[PHASE10-PHASE] Value $value has ${cards.length} cards');
+          
+          if (cards.length >= 3) {
+            // complete set without wilds
+            validSets.add(cards.sublist(0, 3));
+            print('[PHASE10-PHASE] Found complete set of value $value');
+          } else if (cards.length + wildCards.length >= 3) {
+            // could form a set with wilds
+            List<Card> set = [...cards];
+            int wildsNeeded = 3 - cards.length;
+            
+            if (wildCards.length >= wildsNeeded) {
+              // add required wild cards
+              for (int i = 0; i < wildsNeeded; i++) {
+                set.add(wildCards.removeAt(0));
+              }
+              validSets.add(set);
+              print('[PHASE10-PHASE] Found set of value $value using $wildsNeeded wild cards');
+            }
+          }
+        });
+
+        // check if there are at least two valid sets
+        if (validSets.length >= 2) {
+          print('[PHASE10-PHASE] Phase 1 Completed: Found ${validSets.length} valid sets.');
+          return true;
+        }
+      }
+
+      print('[PHASE10-PHASE] Phase 1 validation failed');
+      return false;
+    }
+    
+    // temporary standard validation for other phases
     for (int i = 0; i < requirements.length; i++) {
-      if (!requirements[i].meetsRequirements(cardGroups[i])) {
+      final requirement = requirements[i];
+      final cardGroup = cardGroups[i];
+
+      if (!requirement.meetsRequirements(cardGroup)) {
+        print('[PHASE10-PHASE] Group $i failed to meet requirements');
         return false;
       }
     }
-    
+    print('[PHASE10-PHASE] Phase number $phaseNumber completed successfully.');
     return true;
   }
   

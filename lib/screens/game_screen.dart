@@ -307,9 +307,9 @@ class _GameScreenState extends State<GameScreen> {
   void _attemptPhase(Player player) {
     if (!_canAttemptPhase(player)) {
       String reason = !_hasDrawnThisTurn ? "Draw a card first" : 
-                     player.hasLaidDown ? "You've already completed your phase" :
-                     _selectedCards.isEmpty ? "Select cards first" :
-                     "You've already attempted a phase this turn";
+                    player.hasLaidDown ? "You've already completed your phase" :
+                    _selectedCards.isEmpty ? "Select cards first" :
+                    "You've already attempted a phase this turn";
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(reason))
@@ -317,33 +317,137 @@ class _GameScreenState extends State<GameScreen> {
       return;
     }
     
+    // log selected cards before attempt
+    _logPlayerAction(player.name, 'attempting phase', 'with ${_selectedCards.length} cards');
+    for (var card in _selectedCards) {
+      _logPlayerAction(player.name, 'selected card', card.toString());
+    }
+
     try {
-      // log before phase attempt
-      _logPlayerAction(player.name, 'attempting phase', 'with ${_selectedCards.length} cards');
-      _logPlayerAction(player.name, 'selected cards', _selectedCards.map((c) => c.toString()).join(', '));
+      // get the current phase number
+      int phaseNumber = player.currentPhase;
+      _logPlayerAction(player.name, 'current phase', phaseNumber.toString());
       
-      // group cards for phase attempt
-      List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
-      
-      bool success = widget.engine.playPhase(cardGroups);
-      
-      // log after phase attempt
-      _logPlayerAction(player.name, 'phase attempt result', success ? 'Success' : 'Failed');
-      _logPlayerAction(player.name, 'hasLaidDown', '${player.hasLaidDown}');
-      
-      if (success) {
-        setState(() {
-          _phaseAttemptedThisTurn = true;
-          _selectedCards.clear();
+      // handle phase 1 specifically
+      if (phaseNumber == 1) {
+        _logPlayerAction(player.name, 'phase requirements', 'two sets of three cards');
+        
+        // group cards by their value
+        Map<int, List<game_card.Card>> valueGroups = {};
+        List<game_card.Card> wildCards = [];
+        
+        // separate wilds and group cards by value
+        for (var card in _selectedCards) {
+          if (card.type == game_card.CardType.wild) {
+            wildCards.add(card);
+            _logPlayerAction(player.name, 'identified wild card', card.toString());
+          } else {
+            if (!valueGroups.containsKey(card.value)) {
+              valueGroups[card.value] = [];
+            }
+            valueGroups[card.value]!.add(card);
+          }
+        }
+        
+        _logPlayerAction(player.name, 'found unique values', valueGroups.keys.join(', '));
+        _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+        
+        // identify values that could form sets
+        List<int> validSetValues = [];
+        Map<int, int> wildsNeededForSet = {};
+        
+        valueGroups.forEach((value, cards) {
+          _logPlayerAction(player.name, 'value $value has cards', cards.length.toString());
+          
+          if (cards.length >= 3) {
+            // complete set without wilds
+            validSetValues.add(value);
+            wildsNeededForSet[value] = 0;
+            _logPlayerAction(player.name, 'value $value forms complete set', 'no wilds needed');
+          } else if (cards.length + wildCards.length >= 3) {
+            // could form a set with wilds
+            int wildsNeeded = 3 - cards.length;
+            validSetValues.add(value);
+            wildsNeededForSet[value] = wildsNeeded;
+            _logPlayerAction(player.name, 'value $value could form set', 'using $wildsNeeded wilds');
+          }
         });
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Phase completed!'))
-        );
+        // sort values by fewest wilds needed
+        validSetValues.sort((a, b) => wildsNeededForSet[a]!.compareTo(wildsNeededForSet[b]!));
+        
+        // check if we have at least two valid sets
+        if (validSetValues.length >= 2) {
+          _logPlayerAction(player.name, 'identified valid sets', validSetValues.join(', '));
+          
+          // create card groups for the phase
+          List<List<String>> cardGroups = [];
+          List<game_card.Card> remainingWilds = [...wildCards];
+          
+          // take the best two sets (needing fewest wilds)
+          for (int i = 0; i < 2; i++) {
+            int setValue = validSetValues[i];
+            List<game_card.Card> setCards = [...valueGroups[setValue]!];
+            
+            // add wilds if needed
+            int wildsNeeded = wildsNeededForSet[setValue]!;
+            for (int w = 0; w < wildsNeeded && remainingWilds.isNotEmpty; w++) {
+              setCards.add(remainingWilds.removeAt(0));
+            }
+            
+            // convert to card IDs
+            cardGroups.add(setCards.map((c) => c.id).toList());
+            _logPlayerAction(player.name, 'created set', 'value $setValue with ${setCards.length} cards');
+          }
+          
+          // attempt to play the phase
+          _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+          bool success = widget.engine.playPhase(cardGroups);
+          
+          if (success) {
+            setState(() {
+              _phaseAttemptedThisTurn = true;
+              _selectedCards.clear();
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase completed!'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Success');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase attempt failed. Check requirements.'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need 2 sets of 3 cards each with the same numbers.'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'not enough valid sets');
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Phase attempt failed. Check requirements.'))
-        );
+        // temporary old handling for other phases
+        List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
+        
+        bool success = widget.engine.playPhase(cardGroups);
+        
+        if (success) {
+          setState(() {
+            _phaseAttemptedThisTurn = true;
+            _selectedCards.clear();
+          });
+          
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Phase completed!'))
+          );
+          _logPlayerAction(player.name, 'phase attempt result', 'Success');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Phase attempt failed. Check requirements.'))
+          );
+          _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+        }
       }
     } catch (e) {
       _handleError('Error attempting phase', e);
