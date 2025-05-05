@@ -19,6 +19,7 @@ import 'models/user_model.dart';
 import 'screens/game_screen.dart';
 import 'screens/play_screen.dart';
 import 'screens/help_screen.dart';
+import 'screens/score_screen.dart';
 import 'services/game_session.dart';
 
 
@@ -103,8 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
   
   static const List<Widget> _pages = <Widget>[
     PlayPage(),
+    ScorePage(),
     HelpPage(),
-    // ScorePage()
   ];
   
   void _onItemTapped(int index) {
@@ -138,6 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
         showUnselectedLabels: true,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: 'Play'),
+          BottomNavigationBarItem(icon: Icon(Icons.scoreboard), label: 'Score'),
           BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
         ],
         currentIndex: pageIndex,
@@ -148,17 +150,3 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-// class ScorePage extends StatelessWidget{
-// const ScorePage({super.key});
-// @override
-// Widget build(BuildContext context)
-// {
-// return Scaffold(
-// appBar: AppBar(
-// title: Text("Score Page"),
-// ),
-// body: Center(),
-// );
-// }
-// }
-
