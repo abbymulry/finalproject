@@ -890,7 +890,136 @@ class _GameScreenState extends State<GameScreen> {
           );
           _logPlayerAction(player.name, 'phase attempt failed', 'not enough cards for both requirements');
         }
-      } else {
+      } 
+      else if (phaseNumber == 4) {
+        _logPlayerAction(player.name, 'phase 4 requirements', 'one run of seven');
+
+        // separate number and wild cards
+        Map<int, List<game_card.Card>> valueGroups = {};
+        List<game_card.Card> wildCards = [];
+
+        for (var card in _selectedCards) {
+          if (card.type == game_card.CardType.wild) {
+            wildCards.add(card);
+            _logPlayerAction(player.name, 'identified wild card', card.toString());
+          } else {
+            if (!valueGroups.containsKey(card.value)) {
+              valueGroups[card.value] = [];
+            }
+            valueGroups[card.value]!.add(card);
+          }
+        }
+
+        _logPlayerAction(player.name, 'found unique values', valueGroups.keys.join(', '));
+        _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+
+        // same logic as phase 2 finding potential runs
+        bool foundValidRun = false;
+        List<game_card.Card> runCards = [];
+
+        // sort values to check for runs
+        List<int> sortedValues = valueGroups.keys.toList()..sort();
+        _logPlayerAction(player.name, 'checking for runs with values', sortedValues.join(', '));
+
+        // try to find a run of 7 consecutive cards
+        if (sortedValues.length + wildCards.length >= 7) {
+          // find longest run
+          int bestRunLength = 0;
+          List<int> bestRunValues = [];
+          int bestWildsNeeded = 1000; // placeholder high number higher than the number of cards in the deck
+
+          // try each value as a potential starting point
+          for (int startValue in sortedValues) {
+            List<int> currentRun = [];
+            int wildsNeeded = 0;
+
+            // check up to 10 consecutive values 
+            for (int i = 0; i < 10; i++) {
+              int expectedValue = startValue + i;
+
+              if (valueGroups.containsKey(expectedValue)) {
+                // we have this value
+                currentRun.add(expectedValue);
+              } else if (wildsNeeded < wildCards.length) {
+                // use a wild card
+                currentRun.add(expectedValue);
+                wildsNeeded++;
+              } else {
+                // cant continue the run
+                break;
+              }
+            }
+
+            // check if this is a valid run of 7 or more cards
+            if (currentRun.length >= 7) {
+              _logPlayerAction(player.name, 'found potential run', 'starting at $startValue with length ${currentRun.length}, needing $wildsNeeded wilds');
+
+              // check if this is a better run than the previously stored run
+              if (wildsNeeded < bestWildsNeeded || (wildsNeeded == bestWildsNeeded && currentRun.length > bestRunLength)) {
+                bestRunLength = currentRun.length;
+                bestRunValues = List.from(currentRun);
+                bestWildsNeeded = wildsNeeded;
+              }
+            }
+          }
+
+          // check if we found a valid run
+          if (bestRunLength >= 7) {
+            // take just 7 card values for the run
+            List<int> runValues = bestRunValues.sublist(0, 7);
+            _logPlayerAction(player.name, 'using run values', runValues.join(', '));
+
+            // create the run with the real cards and wild cards if needed
+            List<game_card.Card> remainingWilds = [...wildCards];
+
+            for (int value in runValues) {
+              if (valueGroups.containsKey(value) && valueGroups[value]!.isNotEmpty) {
+                // add a value card
+                runCards.add(valueGroups[value]!.removeAt(0));
+              } else {
+                // add a wild card
+                runCards.add(remainingWilds.removeAt(0));
+              }
+            }
+
+            foundValidRun = true;
+            _logPlayerAction(player.name, 'created valid run', 'with ${runCards.length} cards');
+          }
+        }
+
+        if (foundValidRun) {
+          // create card groups for the phase
+          List<List<String>> cardGroups = [
+            runCards.map((c) => c.id).toList(),
+          ];
+
+          // attempt to play the phase
+          _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+          bool success = widget.engine.playPhase(cardGroups);
+
+          if (success) {
+            setState(() {
+              _phaseAttemptedThisTurn = true;
+              _selectedCards.clear();
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase Completed!'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Success');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase attempt failed, check requirements'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need a run of 7 consecutive cards'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'no valid run found');
+        }
+      }  else {
         // temporary old handling for other phases
         List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
         
