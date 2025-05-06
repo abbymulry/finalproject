@@ -1375,6 +1375,108 @@ class _GameScreenState extends State<GameScreen> {
           );
           _logPlayerAction(player.name, 'phase attempt failed', 'not enough valid sets');
         }
+      } 
+      else if (phaseNumber == 8) {
+        _logPlayerAction(player.name, 'phase 8 requirements', '7 cards of one color');
+        
+        // group cards by their value
+        Map<game_card.CardColor, List<game_card.Card>> colorGroups = {};
+        List<game_card.Card> wildCards = [];
+        
+        // separate wilds and group cards by value
+        for (var card in _selectedCards) {
+          if (card.type == game_card.CardType.wild) {
+            wildCards.add(card);
+            _logPlayerAction(player.name, 'identified wild card', card.toString());
+          } else {
+            if (!colorGroups.containsKey(card.color)) {
+              colorGroups[card.color] = [];
+            }
+            colorGroups[card.color]!.add(card);
+          }
+        }
+        
+        _logPlayerAction(player.name, 'found unique colors', colorGroups.keys.join(', '));
+        _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+        
+        // identify color groups that could form sets
+        List<game_card.CardColor> potentialColors = [];
+        Map<game_card.CardColor, int> wildsNeededForColorSet = {};
+        
+        colorGroups.forEach((color, cards) {
+          _logPlayerAction(player.name, 'color $color has cards', cards.length.toString());
+          
+          if (cards.length >= 7) {
+            // complete set without wilds
+            potentialColors.add(color);
+            wildsNeededForColorSet[color] = 0;
+            _logPlayerAction(player.name, 'color $color forms complete set', 'no wilds needed');
+          } else if (cards.length + wildCards.length >= 7) {
+            // could form a set with wilds
+            int wildsNeeded = 7 - cards.length;
+            potentialColors.add(color);
+            wildsNeededForColorSet[color] = wildsNeeded;
+            _logPlayerAction(player.name, 'color $color could form set', 'using $wildsNeeded wilds');
+          }
+        });
+
+        // check if we have a valid color set
+        if (potentialColors.isNotEmpty) {
+          // sort color sets by fewest wilds needed
+          potentialColors.sort((a, b) => wildsNeededForColorSet[a]!.compareTo(wildsNeededForColorSet[b]!));
+          
+          // use color that requires the fewest wild cards
+          game_card.CardColor bestColor = potentialColors[0];
+          int wildsNeeded = wildsNeededForColorSet[bestColor]!; 
+
+          // create the color group
+          List<game_card.Card> colorCards = [];
+          colorCards.addAll(colorGroups[bestColor]!);
+
+          // add wild cards if needed
+          for (int i = 0; i < wildsNeeded; i++) {
+            colorCards.add(wildCards[i]);
+          }
+
+          // take just 7 cards
+          if (colorCards.length > 7) {
+            colorCards = colorCards.sublist(0,7);
+          }
+            
+          
+          _logPlayerAction(player.name, 'created color group', 'color ${bestColor.name} with ${colorCards.length} cards');
+          
+          // create card groups for the phase
+          List<List<String>> cardGroups = [
+            colorCards.map((c) => c.id).toList(),
+          ];
+          
+          // attempt to play the phase
+          _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+          bool success = widget.engine.playPhase(cardGroups);
+          
+          if (success) {
+            setState(() {
+              _phaseAttemptedThisTurn = true;
+              _selectedCards.clear();
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase completed!'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Success');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase attempt failed. Check requirements.'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need 1 set of 7 cards each with the same color.'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'no valid color group found');
+        }
       } else {
         // temporary old handling for other phases
         List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
