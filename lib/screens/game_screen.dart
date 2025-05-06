@@ -1477,7 +1477,166 @@ class _GameScreenState extends State<GameScreen> {
           );
           _logPlayerAction(player.name, 'phase attempt failed', 'no valid color group found');
         }
+      } 
+      if (phaseNumber == 9) {
+      _logPlayerAction(player.name, 'phase 9 requirements', 'a set of 5 and a set of 2 cards');
+      
+      // group cards by their value
+      Map<int, List<game_card.Card>> valueGroups = {};
+      List<game_card.Card> wildCards = [];
+      
+      // separate wilds and group cards by value
+      for (var card in _selectedCards) {
+        if (card.type == game_card.CardType.wild) {
+          wildCards.add(card);
+          _logPlayerAction(player.name, 'identified wild card', card.toString());
+        } else {
+          if (!valueGroups.containsKey(card.value)) {
+            valueGroups[card.value] = [];
+          }
+          valueGroups[card.value]!.add(card);
+        }
+      }
+      
+      _logPlayerAction(player.name, 'found unique values', valueGroups.keys.join(', '));
+      _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+      
+      // identify values that could form sets
+      List<int> validSetValues = [];
+      Map<int, int> wildsNeededForSet = {};
+      
+      valueGroups.forEach((value, cards) {
+        _logPlayerAction(player.name, 'value $value has cards', cards.length.toString());
+        
+        // Check for set of 5
+        if (cards.length >= 5) {
+          // complete set without wilds
+          validSetValues.add(value);
+          wildsNeededForSet[value] = 0;
+          _logPlayerAction(player.name, 'value $value forms complete set of 5', 'no wilds needed');
+        } else if (cards.length >= 2 && cards.length + wildCards.length >= 5) {
+          // could form a set of 5 with wilds (need at least 2 natural cards)
+          int wildsNeeded = 5 - cards.length;
+          validSetValues.add(value);
+          wildsNeededForSet[value] = wildsNeeded;
+          _logPlayerAction(player.name, 'value $value could form set of 5', 'using $wildsNeeded wilds');
+        }
+        
+        // Check for set of 2
+        if (cards.length >= 2) {
+          // complete set of 2 without wilds
+          if (!validSetValues.contains(value)) {
+            validSetValues.add(value);
+            wildsNeededForSet[value] = 0;
+            _logPlayerAction(player.name, 'value $value forms complete set of 2', 'no wilds needed');
+          }
+        } else if (cards.length == 1 && wildCards.length >= 1) {
+          // could form a set of 2 with 1 wild
+          if (!validSetValues.contains(value)) {
+            validSetValues.add(value);
+            wildsNeededForSet[value] = 1;
+            _logPlayerAction(player.name, 'value $value could form set of 2', 'using 1 wild');
+          }
+        }
+      });
+      
+      // sort values by fewest wilds needed
+      validSetValues.sort((a, b) => wildsNeededForSet[a]!.compareTo(wildsNeededForSet[b]!));
+      
+      // check if we have at least two valid sets
+      if (validSetValues.length >= 2) {
+        _logPlayerAction(player.name, 'identified valid sets', validSetValues.join(', '));
+        
+        // create card groups for the phase
+        List<List<String>> cardGroups = [];
+        List<game_card.Card> remainingWilds = [...wildCards];
+        
+        // Find a value that can form a set of 5
+        bool foundSetOf5 = false;
+        bool foundSetOf2 = false;
+        int? setOf5Value;
+        int? setOf2Value;
+        
+        // First identify which values can form the set of 5 and which can form set of 2
+        for (int setValue in validSetValues) {
+          List<game_card.Card> setCards = [...valueGroups[setValue]!];
+          int availableWilds = remainingWilds.length;
+          
+          if (setCards.length + availableWilds >= 5 && !foundSetOf5) {
+            // This can be our set of 5
+            setOf5Value = setValue;
+            foundSetOf5 = true;
+          } else if (setCards.length + availableWilds >= 2 && !foundSetOf2 && setValue != setOf5Value) {
+            // This can be our set of 2
+            setOf2Value = setValue;
+            foundSetOf2 = true;
+          }
+          
+          if (foundSetOf5 && foundSetOf2) break;
+        }
+        
+        if (foundSetOf5 && foundSetOf2) {
+          // Create set of 5
+          List<game_card.Card> set5Cards = [...valueGroups[setOf5Value]!];
+          int wildsNeeded5 = 5 - set5Cards.length;
+          wildsNeeded5 = wildsNeeded5 < 0 ? 0 : wildsNeeded5;
+          
+          // Add wilds if needed for set of 5
+          for (int w = 0; w < wildsNeeded5 && remainingWilds.isNotEmpty; w++) {
+            set5Cards.add(remainingWilds.removeAt(0));
+          }
+          
+          // Convert to card IDs for set of 5
+          cardGroups.add(set5Cards.map((c) => c.id).toList());
+          _logPlayerAction(player.name, 'created set of 5', 'value $setOf5Value with ${set5Cards.length} cards');
+          
+          // Create set of 2
+          List<game_card.Card> set2Cards = [...valueGroups[setOf2Value]!];
+          int wildsNeeded2 = 2 - set2Cards.length;
+          wildsNeeded2 = wildsNeeded2 < 0 ? 0 : wildsNeeded2;
+          
+          // Add wilds if needed for set of 2
+          for (int w = 0; w < wildsNeeded2 && remainingWilds.isNotEmpty; w++) {
+            set2Cards.add(remainingWilds.removeAt(0));
+          }
+          
+          // Convert to card IDs for set of 2
+          cardGroups.add(set2Cards.map((c) => c.id).toList());
+          _logPlayerAction(player.name, 'created set of 2', 'value $setOf2Value with ${set2Cards.length} cards');
+          
+          // attempt to play the phase
+          _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+          bool success = widget.engine.playPhase(cardGroups);
+          
+          if (success) {
+            setState(() {
+              _phaseAttemptedThisTurn = true;
+              _selectedCards.clear();
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase completed!'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Success');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase attempt failed. Check requirements.'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need 1 set of 5 cards and 1 set of 2 cards each with the same numbers.'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'could not form required sets');
+        }
       } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Need 1 set of 5 cards and 1 set of 2 cards each with the same numbers.'))
+        );
+        _logPlayerAction(player.name, 'phase attempt failed', 'not enough valid sets');
+      }
+    } else {
         // temporary old handling for other phases
         List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
         
