@@ -1550,6 +1550,22 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final player = widget.engine.currentPlayer;
     final isUserTurn = player.name == userName;
+
+    // sort the player's hand for better display/easier user intepretation
+    List<game_card.Card> sortedHand = List.from(player.hand);
+    sortedHand.sort((a,b) {
+      // sort by type first -> numbers then wilds then skips
+      if (a.type != b.type) {
+        return a.type.index.compareTo(b.type.index);
+      }
+      // for cards of same type, sort by color
+      if (a.value != b.value) {
+        return a.value.compareTo(b.value);
+      }
+      // sort by value
+      return a.color.index.compareTo(b.color.index);
+    });
+
     
     return Scaffold(
       appBar: AppBar(
@@ -1703,7 +1719,7 @@ class _GameScreenState extends State<GameScreen> {
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: player.hand.map((card) {
+                  children: sortedHand.map((card) {
                     final isSelected = _selectedCards.any((c) => c.id == card.id);
                     final isNewCard = _drawnCard?.id == card.id;
                     
