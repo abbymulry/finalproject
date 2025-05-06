@@ -13,6 +13,8 @@ class _ScorePageState extends State<ScorePage>{
   final Map<Player, TextEditingController> _scoreControllers = {};
   final Map<Player, bool> _phaseCompleted = {};
   final List<Player> _players = [];
+  final List<Previous> _previousEntries = [];
+  bool undoUsed = true;
 
   void _addPlayer() {
     final name = _nameController.text.trim();
@@ -23,22 +25,38 @@ class _ScorePageState extends State<ScorePage>{
       _scoreControllers[newPlayer] = TextEditingController();
       _phaseCompleted[newPlayer] = false;
       _nameController.clear();
+      _previousEntries.add(Previous(playerIndex: _players.length - 1));
     });
   }
 
   void _submitRound() {
     setState(() {
-      for(var player in _players)
+      for(int i = 0; i < _players.length; i++)
       {
-        final scoreText = _scoreControllers[player]?.text??'';
-        final score = int.tryParse(scoreText) ?? 0;
-        player.score += score;
-        if(_phaseCompleted[player] == true)
+        if(_players[i].currentPhase < 11)
         {
-          player.currentPhase += 1;
+          _previousEntries[i].currentPhase = _players[i].currentPhase;
+          _previousEntries[i].score = _players[i].score;
+          final scoreText = _scoreControllers[_players[i]]?.text??'';
+          final score = int.tryParse(scoreText) ?? 0;
+          _players[i].score += score;
+          if(_phaseCompleted[_players[i]] == true)
+          {
+            _players[i].currentPhase += 1;
+          }
+          _scoreControllers[_players[i]]?.clear();
+          _phaseCompleted[_players[i]] = false;
         }
-        _scoreControllers[player]?.clear();
-        _phaseCompleted[player] = false;
+      }
+    });
+  }
+
+  void _undoSubmit(){
+    setState(() {
+      for(int i = 0; i < _players.length; i++)
+      {
+        _players[i].currentPhase = _previousEntries[i].currentPhase;
+        _players[i].score = _previousEntries[i].score;
       }
     });
   }
@@ -84,7 +102,7 @@ class _ScorePageState extends State<ScorePage>{
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(player.name, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          Text("Phase: ${player.currentPhase} | Score: ${player.score}"),
+                          Text("Phases Completed: ${player.currentPhase - 1} | Score: ${player.score}"),
                           Row(
                             children: [
                               Expanded(
@@ -112,13 +130,49 @@ class _ScorePageState extends State<ScorePage>{
                 },
               ),
             ),
-            ElevatedButton(
-              onPressed: _players.isNotEmpty ? _submitRound : null,
-              child: Text('Submit Round'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: (_players.isNotEmpty && undoUsed == false)
+                  ? (){
+                    setState((){
+                      undoUsed = true;
+                    });
+                    _undoSubmit();
+                  }
+                  : null,
+                  child: Text("Undo"),
+                ),
+                SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: _players.isNotEmpty 
+                  ? (){ 
+                    setState((){
+                      undoUsed = false;
+                    });
+                    _submitRound();
+                  } 
+                  : null,
+                  child: Text('Submit Round'),
+                )
+              ],
             )
           ],
         ),
       ),
     );
   }
+}
+
+class Previous {
+  final int playerIndex;
+  int currentPhase;
+  int score;
+
+  Previous({
+    required this.playerIndex,
+    this.currentPhase = 1,
+    this.score = 0,
+  });
 }
