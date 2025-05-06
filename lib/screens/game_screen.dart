@@ -332,7 +332,7 @@ class _GameScreenState extends State<GameScreen> {
       
       // handle phase 1 specifically
       if (phaseNumber == 1) {
-        _logPlayerAction(player.name, 'phase requirements', 'two sets of three cards');
+        _logPlayerAction(player.name, 'phase 1 requirements', 'two sets of three cards');
         
         // group cards by their value
         Map<int, List<game_card.Card>> valueGroups = {};
@@ -430,7 +430,7 @@ class _GameScreenState extends State<GameScreen> {
         }
       } 
       else if (phaseNumber == 2) {
-        _logPlayerAction(player.name, 'phase requirements', 'one set of three and one run of four');
+        _logPlayerAction(player.name, 'phase 2 requirements', 'one set of three and one run of four');
 
         // separate number and wild cards
         Map<int, List<game_card.Card>> valueGroups = {};
@@ -492,8 +492,8 @@ class _GameScreenState extends State<GameScreen> {
             List<int> currentRun = [];
             int wildsNeeded = 0;
 
-            // check up to 7 consecutive values (relatively arbitrary, just picked since a hand starts with 10 cards, need 1 set of 3, 10-3=7 and is plenty to cover run)
-            for (int i = 0; i < 7; i++) {
+            // check up to 10 consecutive values since the highest run required is 9
+            for (int i = 0; i < 10; i++) {
               int expectedValue = startValue + i;
 
               if (valueGroups.containsKey(expectedValue)) {
@@ -620,6 +620,275 @@ class _GameScreenState extends State<GameScreen> {
             );
             _logPlayerAction(player.name, 'phase attempt failed', 'missing required groups');
           }
+        }
+      } 
+      else if (phaseNumber == 3) {
+        _logPlayerAction(player.name, 'phase 3 requirements', 'one set of four and one run of four');
+
+        // separate number and wild cards
+        Map<int, List<game_card.Card>> valueGroups = {};
+        List<game_card.Card> wildCards = [];
+
+        for (var card in _selectedCards) {
+          if (card.type == game_card.CardType.wild) {
+            wildCards.add(card);
+            _logPlayerAction(player.name, 'identified wild card', card.toString());
+          } else {
+            if (!valueGroups.containsKey(card.value)) {
+              valueGroups[card.value] = [];
+            }
+            valueGroups[card.value]!.add(card);
+          }
+        }
+
+        _logPlayerAction(player.name, 'found unique values', valueGroups.keys.join(', '));
+        _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+
+        // check for natural runs of 4 (runs that don't need wild cards)
+        bool foundNaturalRun = false;
+        List<int> naturalRunValues = [];
+        List<game_card.Card> runCards = [];
+        
+        // sort values to check for runs
+        List<int> sortedValues = valueGroups.keys.toList()..sort();
+        _logPlayerAction(player.name, 'checking for runs with values', sortedValues.join(', '));
+
+        // first, try to find runs that don't need wild cards
+        for (int i = 0; i < sortedValues.length - 3; i++) {
+          if (sortedValues[i] + 1 == sortedValues[i+1] &&
+              sortedValues[i] + 2 == sortedValues[i+2] &&
+              sortedValues[i] + 3 == sortedValues[i+3]) {
+            
+            // we found a natural run of 4 consecutive values
+            naturalRunValues = [
+              sortedValues[i],
+              sortedValues[i+1],
+              sortedValues[i+2],
+              sortedValues[i+3]
+            ];
+            foundNaturalRun = true;
+            _logPlayerAction(player.name, 'found natural run', naturalRunValues.join(', '));
+            break;
+          }
+        }
+        
+        // if we found a natural run, use it and then try to form a set with remaining cards
+        if (foundNaturalRun) {
+          // create the run cards
+          for (int value in naturalRunValues) {
+            runCards.add(valueGroups[value]!.removeAt(0));
+          }
+          _logPlayerAction(player.name, 'created natural run', 'with ${runCards.length} cards');
+          
+          // now try to form a set with remaining cards
+          List<game_card.Card> setCards = [];
+          int bestSetValue = -1;
+          int fewestWildsNeeded = 5; // more than we could possibly need
+          
+          // find the value that can form a set with the fewest wild cards
+          valueGroups.forEach((value, cards) {
+            if (cards.length >= 4) {
+              // complete set without wilds
+              bestSetValue = value;
+              fewestWildsNeeded = 0;
+              _logPlayerAction(player.name, 'found natural set of 4', 'value $value');
+            } else if (cards.length + wildCards.length >= 4 && 
+                      (4 - cards.length) < fewestWildsNeeded) {
+              // could form a set with wilds
+              bestSetValue = value;
+              fewestWildsNeeded = 4 - cards.length;
+              _logPlayerAction(player.name, 'found potential set', 'value $value needs $fewestWildsNeeded wilds');
+            }
+          });
+          
+          if (bestSetValue >= 0 && fewestWildsNeeded <= wildCards.length) {
+            // add value cards to the set
+            setCards.addAll(valueGroups[bestSetValue]!);
+            
+            // add wild cards if needed
+            for (int i = 0; i < fewestWildsNeeded; i++) {
+              setCards.add(wildCards[i]);
+            }
+            
+            _logPlayerAction(player.name, 'created set', 'value $bestSetValue with ${setCards.length} cards');
+            
+            // we have a valid phase!
+            List<List<String>> cardGroups = [
+              setCards.map((c) => c.id).toList(),
+              runCards.map((c) => c.id).toList()
+            ];
+            
+            _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+            bool success = widget.engine.playPhase(cardGroups);
+            
+            if (success) {
+              setState(() {
+                _phaseAttemptedThisTurn = true;
+                _selectedCards.clear();
+              });
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Phase Completed!'))
+              );
+              _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Phase attempt failed, check requirements'))
+              );
+              _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+            }
+            return;
+          }
+        }
+        
+        // if we don't have a natural run or couldn't form a set, try the normal approach
+        // find potential runs, including ones that need wild cards
+        bool foundValidRun = false;
+        List<int> bestRunValues = [];
+        int bestRunWildsNeeded = 1000;
+        
+        // try each value as a potential starting point
+        for (int startValue in sortedValues) {
+          List<int> currentRun = [];
+          int wildsNeeded = 0;
+
+          // check up to 10 consecutive values
+          for (int i = 0; i < 10; i++) {
+            int expectedValue = startValue + i;
+
+            if (valueGroups.containsKey(expectedValue)) {
+              // we have this value
+              currentRun.add(expectedValue);
+            } else if (wildsNeeded < wildCards.length) {
+              // use a wild card
+              currentRun.add(expectedValue);
+              wildsNeeded++;
+            } else {
+              // cant continue the run
+              break;
+            }
+          }
+
+          // check if this is a valid run of 4 or more cards
+          if (currentRun.length >= 4) {
+            _logPlayerAction(player.name, 'found potential run', 'starting at $startValue with length ${currentRun.length}, needing $wildsNeeded wilds');
+
+            // check if this is a better run than previously found
+            if (wildsNeeded < bestRunWildsNeeded) {
+              bestRunWildsNeeded = wildsNeeded;
+              bestRunValues = currentRun.sublist(0, 4);
+              foundValidRun = true;
+            }
+          }
+        }
+        
+        // find potential sets
+        List<int> potentialSetValues = [];
+        Map<int, int> wildsNeededForSet = {};
+        
+        valueGroups.forEach((value, cards) {
+          if (cards.length >= 4) {
+            // complete set without wilds
+            potentialSetValues.add(value);
+            wildsNeededForSet[value] = 0;
+            _logPlayerAction(player.name, 'value $value forms complete set', 'no wilds needed');
+          } else if (cards.length + wildCards.length >= 4) {
+            // could form a set with wilds
+            int wildsNeeded = 4 - cards.length;
+            potentialSetValues.add(value);
+            wildsNeededForSet[value] = wildsNeeded;
+            _logPlayerAction(player.name, 'value $value could form set', 'using $wildsNeeded wilds');
+          }
+        });
+        
+        // check if we have both a run and a set that work with our wild cards
+        if (foundValidRun && potentialSetValues.isNotEmpty) {
+          // sort sets by fewest wilds needed
+          potentialSetValues.sort((a, b) => wildsNeededForSet[a]!.compareTo(wildsNeededForSet[b]!));
+          
+          for (int setValue in potentialSetValues) {
+            int setWildsNeeded = wildsNeededForSet[setValue]!;
+            
+            // check if we have enough wild cards for both the set and run
+            if (setWildsNeeded + bestRunWildsNeeded <= wildCards.length) {
+              // great! we can form both
+              _logPlayerAction(player.name, 'found valid combination', 'set $setValue and run with ${bestRunValues.length} cards');
+              
+              // create the set
+              List<game_card.Card> setCards = [];
+              List<game_card.Card> remainingWilds = List.from(wildCards);
+              
+              // add cards to the set
+              if (valueGroups.containsKey(setValue)) {
+                setCards.addAll(valueGroups[setValue]!);
+              }
+              
+              // add wilds to the set
+              for (int i = 0; i < setWildsNeeded; i++) {
+                setCards.add(remainingWilds.removeAt(0));
+              }
+              
+              // create the run
+              List<game_card.Card> runCards = [];
+              for (int value in bestRunValues) {
+                if (valueGroups.containsKey(value) && valueGroups[value]!.isNotEmpty) {
+                  // use a value card
+                  runCards.add(valueGroups[value]!.removeAt(0));
+                } else {
+                  // use a wild card
+                  runCards.add(remainingWilds.removeAt(0));
+                }
+              }
+              
+              // we have a valid phase!
+              List<List<String>> cardGroups = [
+                setCards.map((c) => c.id).toList(),
+                runCards.map((c) => c.id).toList()
+              ];
+              
+              _logPlayerAction(player.name, 'created set', 'value $setValue with ${setCards.length} cards');
+              _logPlayerAction(player.name, 'created run', 'with ${runCards.length} cards');
+              
+              _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+              bool success = widget.engine.playPhase(cardGroups);
+              
+              if (success) {
+                setState(() {
+                  _phaseAttemptedThisTurn = true;
+                  _selectedCards.clear();
+                });
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Phase Completed!'))
+                );
+                _logPlayerAction(player.name, 'phase attempt result', 'Success');
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Phase attempt failed, check requirements'))
+                );
+                _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+              }
+              return;
+            }
+          }
+        }
+        
+        // if we get here, we couldn't form a valid phase
+        if (potentialSetValues.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need a set of 4 cards with the same number'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'no valid set found');
+        } else if (!foundValidRun) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Need a run of 4 consecutive cards'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'no valid run found');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Cannot form both a set of 4 and a run of 4 with selected cards'))
+          );
+          _logPlayerAction(player.name, 'phase attempt failed', 'not enough cards for both requirements');
         }
       } else {
         // temporary old handling for other phases
