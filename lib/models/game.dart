@@ -295,6 +295,9 @@ class Game {
       currentPlayer.completedPhases.add(group);
     }
     
+    currentPlayer.hasLaidDown = true;
+    print('[PHASE10-GAME] Player ${currentPlayer.name} has completed phase ${currentPlayer.currentPhase}');
+
     // update timestamp
     lastUpdated = DateTime.now();
     
@@ -311,6 +314,7 @@ class Game {
         // winning player advances to next phase
         player.currentPhase++;
         print('[PHASE10-GAME] ${player.name} advances to phase ${player.currentPhase}');
+        player.hasLaidDown = false;
       } else {
         // other players get penalty points
         int score = player.calculateHandScore();

@@ -1,3 +1,5 @@
+import 'dart:math' as Math;
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as developer;
@@ -426,6 +428,199 @@ class _GameScreenState extends State<GameScreen> {
           );
           _logPlayerAction(player.name, 'phase attempt failed', 'not enough valid sets');
         }
+      } 
+      else if (phaseNumber == 2) {
+        _logPlayerAction(player.name, 'phase requirements', 'one set of three and one run of four');
+
+        // separate number and wild cards
+        Map<int, List<game_card.Card>> valueGroups = {};
+        List<game_card.Card> wildCards = [];
+
+        for (var card in _selectedCards) {
+          if (card.type == game_card.CardType.wild) {
+            wildCards.add(card);
+            _logPlayerAction(player.name, 'identified wild card', card.toString());
+          } else {
+            if (!valueGroups.containsKey(card.value)) {
+              valueGroups[card.value] = [];
+            }
+            valueGroups[card.value]!.add(card);
+          }
+        }
+
+        _logPlayerAction(player.name, 'found unique values', valueGroups.keys.join(', '));
+        _logPlayerAction(player.name, 'found wild cards', wildCards.length.toString());
+
+        // find potential sets, same logic as phase 1
+        List<int> potentialSetValues = [];
+        Map<int, int> wildsNeededForSet = {};
+        
+        valueGroups.forEach((value, cards) {
+          _logPlayerAction(player.name, 'value $value has cards', cards.length.toString());
+          
+          if (cards.length >= 3) {
+            // complete set without wilds
+            potentialSetValues.add(value);
+            wildsNeededForSet[value] = 0;
+            _logPlayerAction(player.name, 'value $value forms complete set', 'no wilds needed');
+          } else if (cards.length + wildCards.length >= 3) {
+            // could form a set with wilds
+            int wildsNeeded = 3 - cards.length;
+            potentialSetValues.add(value);
+            wildsNeededForSet[value] = wildsNeeded;
+            _logPlayerAction(player.name, 'value $value could form set', 'using $wildsNeeded wilds');
+          }
+        });
+
+        // new logic, finding potential runs
+        bool foundValidRun = false;
+        List<game_card.Card> runCards = [];
+
+        // sort values to check for runs
+        List<int> sortedValues = valueGroups.keys.toList()..sort();
+        _logPlayerAction(player.name, 'checking for runs with values', sortedValues.join(', '));
+
+        // try to find a run of 4 consecutive cards
+        if (sortedValues.length + wildCards.length >= 4) {
+          // find longest run
+          int bestRunLength = 0;
+          List<int> bestRunValues = [];
+          int bestWildsNeeded = 1000; // placeholder high number higher than the number of cards in the deck
+
+          // try each value as a potential starting point
+          for (int startValue in sortedValues) {
+            List<int> currentRun = [];
+            int wildsNeeded = 0;
+
+            // check up to 7 consecutive values (relatively arbitrary, just picked since a hand starts with 10 cards, need 1 set of 3, 10-3=7 and is plenty to cover run)
+            for (int i = 0; i < 7; i++) {
+              int expectedValue = startValue + i;
+
+              if (valueGroups.containsKey(expectedValue)) {
+                // we have this value
+                currentRun.add(expectedValue);
+              } else if (wildsNeeded < wildCards.length) {
+                // use a wild card
+                currentRun.add(expectedValue);
+                wildsNeeded++;
+              } else {
+                // cant continue the run
+                break;
+              }
+            }
+
+            // check if this is a valid run of 4 or more cards
+            if (currentRun.length >= 4) {
+              _logPlayerAction(player.name, 'found potential run', 'starting at $startValue with length ${currentRun.length}, needing $wildsNeeded wilds');
+
+              // check if this is a better run than the previously stored run
+              if (wildsNeeded < bestWildsNeeded || (wildsNeeded == bestWildsNeeded && currentRun.length > bestRunLength)) {
+                bestRunLength = currentRun.length;
+                bestRunValues = List.from(currentRun);
+                bestWildsNeeded = wildsNeeded;
+              }
+            }
+          }
+
+          // check if we found a valid run
+          if (bestRunLength >= 4) {
+            // take just 4 card values for the run
+            List<int> runValues = bestRunValues.sublist(0,4);
+            _logPlayerAction(player.name, 'using run values', runValues.join(', '));
+
+            // create the run with the real cards and wild cards if needed (uses spread operator which essentially just copies from the wildCards list)
+            List<game_card.Card> remainingWilds = [...wildCards];
+
+            for (int value in runValues) {
+              if (valueGroups.containsKey(value) && valueGroups[value]!.isNotEmpty) {
+                // add a value card
+                runCards.add(valueGroups[value]!.removeAt(0));
+              } else {
+                // add a wild card
+                runCards.add(remainingWilds.removeAt(0));
+              }
+            }
+
+            foundValidRun = true;
+            _logPlayerAction(player.name, 'created valid run', 'with ${runCards.length} cards');
+          }
+        }
+
+        // check if we have both a set and a run
+        if (potentialSetValues.isNotEmpty && foundValidRun) {
+          // use the set that requires the fewest wild cards
+          potentialSetValues.sort((a, b) => wildsNeededForSet[a]!.compareTo(wildsNeededForSet[b]!));
+          int bestSetValue = potentialSetValues[0];
+
+          // create the set
+          List<game_card.Card> setCards = [];
+          List<game_card.Card> remainingWilds = [...wildCards];
+
+          // remove wilds that are already used in the run
+          for (var card in runCards) {
+            if (card.type == game_card.CardType.wild) {
+              remainingWilds.remove(card);
+            }
+          }
+
+          // add value cards to the set
+          if (valueGroups.containsKey(bestSetValue)) {
+            setCards.addAll(valueGroups[bestSetValue]!);
+          }
+
+          // add wilds if needed
+          int wildsNeeded = Math.max(0, 3 - setCards.length);
+          for (int i = 0; i < wildsNeeded && remainingWilds.isNotEmpty; i++) {
+            setCards.add(remainingWilds.removeAt(0));
+          }
+
+          // create card groups for the phase
+          List<List<String>> cardGroups = [
+            setCards.map((c) => c.id).toList(),
+            runCards.map((c) => c.id).toList()
+          ];
+
+          _logPlayerAction(player.name, 'created set', 'value $bestSetValue with ${setCards.length} cards');
+          _logPlayerAction(player.name, 'created run', 'with ${runCards.length} cards');
+
+          // attempt to actually play the phase
+          _logPlayerAction(player.name, 'submitting phase', '${cardGroups.length} groups');
+          bool success = widget.engine.playPhase(cardGroups);
+
+          if (success) {
+            setState(() {
+              _phaseAttemptedThisTurn = true;
+              _selectedCards.clear();
+            });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase Completed!'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Success');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Phase attempt failed, check requirements'))
+            );
+            _logPlayerAction(player.name, 'phase attempt result', 'Failed');
+          }
+        } else {
+          if (!potentialSetValues.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Need a set of 3 cards with the same number'))
+            );
+            _logPlayerAction(player.name, 'phase attempt failed', 'no valid set found');
+          } else if (!foundValidRun) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Need a run of 4 consecutive cards'))
+            );
+            _logPlayerAction(player.name, 'phase attempt failed', 'no valid run found');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Need both a set of 3 and a run of 4'))
+            );
+            _logPlayerAction(player.name, 'phase attempt failed', 'missing required groups');
+          }
+        }
       } else {
         // temporary old handling for other phases
         List<List<String>> cardGroups = [_selectedCards.map((c) => c.id).toList()];
@@ -527,6 +722,76 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  // handle ending the round when button is clicked
+  void _endRound(Player player) {
+    if (!player.hasLaidDown) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You must complete your phase first!'))
+      );
+      return;
+    }
+
+    if (player.currentPhase >= 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('You\'ve already completed all phases!'))
+      );
+      return;
+    }
+
+    if (_isProcessingTurn) {
+      _log('Turn already processing, ignoring end round');
+      return;
+    }
+
+    _isProcessingTurn = true;
+
+    try {
+      _logPlayerAction(player.name, 'ending round', 'discarding all cards');
+
+      setState(() {
+        // add all remaining cards to discard pile
+        List<game_card.Card> cardsToDiscard = List.from(player.hand);
+        for (var card in cardsToDiscard) {
+          // log each card being discarded
+          _logPlayerAction(player.name, 'discarding card', card.toString());
+          player.discard(card, widget.engine.discardPile);
+        }
+        
+        _logPlayerAction(player.name, 'hand is now empty', 'round will end');
+        
+        // show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Round complete! You advance to phase ${player.currentPhase + 1}'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          )
+        );
+        
+        // end round will automatically advance phase for the player who emptied their hand
+        widget.engine.endRound();
+        
+        // reset turn state
+        _hasDrawnThisTurn = false;
+        _phaseAttemptedThisTurn = false;
+        _drawnCard = null;
+        _selectedCards.clear();
+      });
+      
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _isProcessingTurn = false;
+        
+        // check whose turn it is after the round ends
+        if (widget.engine.currentPlayer.name != userName) {
+          _handleAiTurn();
+        }
+      });
+    } catch (e) {
+      _handleError('Error ending round', e);
+      _isProcessingTurn = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final player = widget.engine.currentPlayer;
@@ -562,8 +827,12 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              "Current Phase: ${player.currentPhase}",
-              style: const TextStyle(fontSize: 16),
+              "Current Phase: ${player.currentPhase}${player.hasLaidDown ? ' ✓' : ''}",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: player.hasLaidDown ? Colors.green : null,
+              ),
             ),
             Text(
               "Phase Completed: ${player.hasLaidDown ? 'Yes' : 'No'}",
@@ -642,8 +911,10 @@ class _GameScreenState extends State<GameScreen> {
             
             // phase Actions
             if (isUserTurn)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Wrap(
+                spacing: 8.0, // horizontal space between buttons
+                runSpacing: 8.0, // vertical space between lines
+                alignment: WrapAlignment.center,
                 children: [
                   ElevatedButton(
                     onPressed: _canAttemptPhase(player) ? 
@@ -655,6 +926,16 @@ class _GameScreenState extends State<GameScreen> {
                       () => setState(() => _selectedCards.clear()) : null,
                     child: const Text("Clear Selection"),
                   ),
+                  // End Round button - only visible when player has completed their phase
+                  if (player.hasLaidDown)
+                    ElevatedButton(
+                      onPressed: () => _endRound(player),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text("End Round"),
+                    ),
                 ],
               ),
             
