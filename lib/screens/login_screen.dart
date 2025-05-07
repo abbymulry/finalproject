@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'register_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -108,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Image.asset('assets/Phase10Logo.png', height: 120),
                         SizedBox(height: 16),
                         Text(
-                          'Welcome Back!',
+                          AppLocalizations.of(context)!.welcomeBack, //'Welcome Back!',
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -117,7 +118,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Login to continue your Phase 10 journey',
+                          AppLocalizations.of(context).logintocontinueyourphase10journey,
+                          //'Login to continue your Phase 10 journey'
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade600,
@@ -146,8 +148,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Enter your email address',
+                        labelText: AppLocalizations.of(context).email, //'Email'
+                        hintText: AppLocalizations.of(context).emailhint, //'Enter your email address'
                         prefixIcon: Icon(Icons.email, color: Phase10Colors.primaryBlue),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(15),
