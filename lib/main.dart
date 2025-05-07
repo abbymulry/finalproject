@@ -30,6 +30,7 @@ import 'screens/play_screen.dart';       // Play interface screen
 import 'screens/help_screen.dart';       // Help/instructions screen
 import 'screens/score_screen.dart';      // Scoreboard screen
 import 'services/game_session.dart';     // Game session management
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; //Language Support
 
 
 // =====================================================
@@ -113,6 +114,8 @@ class _MyAppState extends State<MyApp> {
       ),
       // Conditional rendering based on authentication state
       home: authProvider.isAuthenticated ? const MyHomePage() : const LoginScreen(),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
     );
   }
 }

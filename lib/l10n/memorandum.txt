@@ -1,0 +1,12 @@
+每次添加完arb文件 运行flutter gen-l10n 进行翻译包整合。
+AppLocalizations.of(context). //用于选用文本。
+每个需要翻译的文档添加 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+arb文件是JSON文件 所以最后一个翻译后不需要 “，”
+arb 文件前面的文字记得小写
+
+Affter add something in arb file, run flutter gen_l10n.
+AppLocalizations.of(context). //use to secelct the text
+//for exmaple AppLocalizations.of(context).welcomeBack
+//in english is Welcome Back!, in Chinese is 欢迎回来
+every file which need translate need add import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+arb is JSON file so do not add "," After the last translate context
