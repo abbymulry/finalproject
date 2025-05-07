@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/player.dart';
+import '../models/score.dart';
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -19,148 +20,27 @@ class ScorePage extends StatefulWidget {
 }
 
 class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMixin {
-  final TextEditingController _nameController = TextEditingController();
-  final Map<Player, TextEditingController> _scoreControllers = {};
-  final Map<Player, bool> _phaseCompleted = {};
-  final List<Player> _players = [];
-  final List<Previous> _previousEntries = [];
   bool undoUsed = true;
+  var scoreInstance = Score();
   
-  late AnimationController _animController;
-  late Animation<double> _animation;
-
   @override
   void initState() {
     super.initState();
     
     // Setup animation for UI elements
-    _animController = AnimationController(
+    scoreInstance.animController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
     
-    _animation = CurvedAnimation(
-      parent: _animController,
+    scoreInstance.animation = CurvedAnimation(
+      parent: scoreInstance.animController,
       curve: Curves.easeOutQuad,
     );
     
-    _animController.forward();
+    scoreInstance.animController.forward();
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    for (var c in _scoreControllers.values) {
-      c.dispose();
-    }
-    _animController.dispose();
-    super.dispose();
-  }
-
-  void _addPlayer() {
-    final name = _nameController.text.trim();
-    if(name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please enter a player name'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-      return;
-    }
-    
-    // Reset animation for nice visual effect when adding new player
-    _animController.reset();
-    
-    setState(() {
-      final newPlayer = Player(id: '0', name: name);
-      _players.add(newPlayer);
-      _scoreControllers[newPlayer] = TextEditingController();
-      _phaseCompleted[newPlayer] = false;
-      _nameController.clear();
-      _previousEntries.add(Previous(playerIndex: _players.length - 1));
-    });
-    
-    _animController.forward();
-  }
-
-  void _submitRound() {
-    // Validate inputs
-    bool allValid = true;
-    for (var player in _players) {
-      final scoreText = _scoreControllers[player]?.text ?? '';
-      if (scoreText.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Please enter a score for ${player.name}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        allValid = false;
-        break;
-      }
-    }
-    
-    if (!allValid) return;
-    
-    setState(() {
-      for(int i = 0; i < _players.length; i++) {
-        if(_players[i].currentPhase < 11) {
-          _previousEntries[i].currentPhase = _players[i].currentPhase;
-          _previousEntries[i].score = _players[i].score;
-          final scoreText = _scoreControllers[_players[i]]?.text??'';
-          final score = int.tryParse(scoreText) ?? 0;
-          _players[i].score += score;
-          if(_phaseCompleted[_players[i]] == true) {
-            _players[i].currentPhase += 1;
-          }
-          _scoreControllers[_players[i]]?.clear();
-          _phaseCompleted[_players[i]] = false;
-        }
-      }
-      undoUsed = false;
-    });
-    
-    // Show success message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Round submitted successfully!'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-
-  void _undoSubmit() {
-    setState(() {
-      for(int i = 0; i < _players.length; i++) {
-        _players[i].currentPhase = _previousEntries[i].currentPhase;
-        _players[i].score = _previousEntries[i].score;
-      }
-      undoUsed = true;
-    });
-    
-    // Show undo message
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Last round undone'),
-        backgroundColor: Phase10Colors.accentOrange,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-  
   // Get phase description
   String _getPhaseDescription(int phaseNumber) {
     switch (phaseNumber) {
@@ -189,24 +69,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
     }
   }
 
-  // Find the leader among players
-  Player? _findLeader() {
-    if (_players.isEmpty) return null;
-    
-    Player leader = _players[0];
-    for (var player in _players) {
-      if (player.currentPhase > leader.currentPhase) {
-        leader = player;
-      } else if (player.currentPhase == leader.currentPhase && player.score < leader.score) {
-        leader = player;
-      }
-    }
-    return leader;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final leader = _findLeader();
+    final leader = scoreInstance.findLeader();
     
     return Scaffold(
       backgroundColor: Phase10Colors.backgroundGrey,
@@ -330,13 +195,13 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: TextField(
-                              controller: _nameController,
+                              controller: scoreInstance.nameController,
                               decoration: InputDecoration(
                                 hintText: 'Enter player name',
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.all(16),
                               ),
-                              onSubmitted: (_) => _addPlayer(),
+                              onSubmitted: (_) => scoreInstance.addPlayer,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Phase10Colors.darkText,
@@ -346,7 +211,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         ),
                         SizedBox(width: 10),
                         ElevatedButton(
-                          onPressed: _addPlayer,
+                          onPressed: () => setState((){
+                            scoreInstance.addPlayer(context);
+                          }),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Phase10Colors.primaryBlue,
                             foregroundColor: Colors.white,
@@ -367,7 +234,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
               
               // Player List
               Expanded(
-                child: _players.isEmpty
+                child: scoreInstance.players.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -398,19 +265,19 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         ),
                       )
                     : ListView.builder(
-                        itemCount: _players.length,
+                        itemCount: scoreInstance.players.length,
                         itemBuilder: (_, index) {
-                          final player = _players[index];
+                          final player = scoreInstance.players[index];
                           return AnimatedBuilder(
-                            animation: _animation,
+                            animation: scoreInstance.animation,
                             builder: (context, child) {
                               return FadeTransition(
-                                opacity: _animation,
+                                opacity: scoreInstance.animation,
                                 child: SlideTransition(
                                   position: Tween<Offset>(
                                     begin: Offset(0.1, 0),
                                     end: Offset.zero,
-                                  ).animate(_animation),
+                                  ).animate(scoreInstance.animation),
                                   child: child,
                                 ),
                               );
@@ -576,7 +443,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: TextField(
-                                              controller: _scoreControllers[player],
+                                              controller: scoreInstance.scoreControllers[player],
                                               keyboardType: TextInputType.number,
                                               decoration: InputDecoration(
                                                 hintText: 'Enter score for this round',
@@ -599,10 +466,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                                           child: Row(
                                             children: [
                                               Checkbox(
-                                                value: _phaseCompleted[player],
+                                                value: scoreInstance.phaseCompleted[player],
                                                 onChanged: (value) {
                                                   setState(() {
-                                                    _phaseCompleted[player] = value ?? false;
+                                                    scoreInstance.phaseCompleted[player] = value ?? false;
                                                   });
                                                 },
                                                 activeColor: Phase10Colors.primaryBlue,
@@ -634,7 +501,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
               ),
               
               // Bottom action buttons
-              if (_players.isNotEmpty)
+              if (scoreInstance.players.isNotEmpty)
                 Container(
                   margin: EdgeInsets.only(top: 16),
                   padding: EdgeInsets.all(16),
@@ -653,7 +520,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       ElevatedButton(
-                        onPressed: (!undoUsed) ? () => _undoSubmit() : null,
+                        onPressed: (!undoUsed) ? () => setState((){
+                          scoreInstance.undoSubmit(context);
+                          undoUsed = true;
+                        }) : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Phase10Colors.accentOrange,
@@ -681,7 +551,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         ),
                       ),
                       ElevatedButton(
-                        onPressed: () => _submitRound(),
+                        onPressed: () => setState(() {
+                          scoreInstance.submitRound(context);
+                        }),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Phase10Colors.primaryBlue,
                           foregroundColor: Colors.white,
