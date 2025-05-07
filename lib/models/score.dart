@@ -1,43 +1,33 @@
 import 'package:flutter/material.dart';
 import '../models/player.dart';
 
-class Score{
+
+class Score {
   final TextEditingController _nameController = TextEditingController();
+
+  Score(List<Player>? players) {
+    if(players != null)
+    {
+      _players.addAll(players);
+    }
+  }
+
   final Map<Player, TextEditingController> _scoreControllers = {};
   final Map<Player, bool> _phaseCompleted = {};
   final List<Player> _players = [];
   final List<Previous> _previousEntries = [];
-  late AnimationController _animController;
-  late Animation<double> _animation;
+  bool _undoUsed = true;
+  DateTime lastUpdated = DateTime.now();
 
   TextEditingController get nameController => _nameController;
   List<Player> get players => _players;
   Map <Player, TextEditingController> get scoreControllers => _scoreControllers;
   Map <Player, bool> get phaseCompleted => _phaseCompleted;
-  AnimationController get animController => _animController;
-  Animation<double> get animation => _animation;  
-
-  set animController(AnimationController controller) => _animController = controller;
-  set animation(Animation<double> animation) => _animation = animation;
+  bool get undoUsed => _undoUsed; 
 
 
   void addPlayer(BuildContext context) {
     final name = _nameController.text.trim();
-    if(name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please enter a player name'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-      return;
-    }
-
-    _animController.reset();
 
     final newPlayer = Player(id: '0', name: name);
       _players.add((newPlayer));
@@ -45,29 +35,9 @@ class Score{
       _phaseCompleted[newPlayer] = false;
       _nameController.clear();
       _previousEntries.add(Previous(playerIndex: _players.length - 1));
-
-      _animController.forward();
   }
 
   void submitRound(BuildContext context) {
-      bool allValid = true;
-      for (var player in _players) {
-        final scoreText = _scoreControllers[player]?.text ?? '';
-        if (scoreText.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Please enter a score for ${player.name}'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          allValid = false;
-          break;
-        }
-    }
-    
-    if (!allValid) return;
-    
       for(int i = 0; i < _players.length; i++)
       {
         if(_players[i].currentPhase < 11)
@@ -85,16 +55,7 @@ class Score{
           _phaseCompleted[_players[i]] = false;
         }
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Round submitted successfully!'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+      _undoUsed = false;
   }
 
   void undoSubmit(BuildContext context){
@@ -103,17 +64,8 @@ class Score{
         _players[i].currentPhase = _previousEntries[i].currentPhase;
         _players[i].score = _previousEntries[i].score;
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Last round undone'),
-        backgroundColor: Color(0xFFF7A928),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
+      
+      _undoUsed = true;
   } 
 
   // Find the leader among players
@@ -131,35 +83,23 @@ class Score{
     return leader;
   }
 
-  // convert game to json for network transmission
-  // Map<String, dynamic> toJson() {
-  //   return {
-  //     'id': id,
-  //     'players': players.map((p) => p.toJson()).toList(),
-  //     'deck': _deckObject.cards.map((c) => c.toJson()).toList(),
-  //     'discardPile': discardPile.map((c) => c.toJson()).toList(),
-  //     'currentPlayerIndex': currentPlayerIndex,
-  //     'state': state.index,
-  //     'lastUpdated': lastUpdated.toIso8601String(),
-  //   };
-  // }
-  
-  // // create game from json for network transmission
-  // factory Game.fromJson(Map<String, dynamic> json) {
-  //   // create a deck object from the cards
-  //   List<Card> deckCards = (json['deck'] as List).map((c) => Card.fromJson(c as Map<String, dynamic>)).toList();
+  Map<String, dynamic> toJson() {
+      return {
+        'players': _players.map((p) => p.toJson()).toList()
+      };
+   }
 
-  //   Deck deck = Deck.fromCards(deckCards);
-
-  //   return Game(
-  //     id: json['id'],
-  //     players: (json['players'] as List).map((p) => Player.fromJson(p as Map<String, dynamic>)).toList(),
-  //     deck: deck,
-  //     discardPile: (json['discardPile'] as List).map((c) => Card.fromJson(c as Map<String, dynamic>)).toList(),
-  //     currentPlayerIndex: json['currentPlayerIndex'],
-  //     state: GameState.values[json['state']],
-  //   );
-  // }
+  factory Score.fromJson(Map<String, dynamic> json){
+      final score = Score(null);
+      if (json['players'] != null) {
+      score._players.addAll(
+        (json['players'] as List)
+            .map((p) => Player.fromJson(p as Map<String, dynamic>))
+            .toList(),
+        );
+      }
+      return score;
+  }
 }
 
 class Previous {
