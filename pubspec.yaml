@@ -123,16 +123,16 @@ flutter:
     - assets/wild.png
     - assets/run.png
     - assets/Phase10Logo.png
-    - assets/phaseone.png
-    - assets/phasetwo.png
-    - assets/phasethree.png
-    - assets/phasefour.png
-    - assets/phasefive.png
-    - assets/phasesix.png
-    - assets/phaseseven.png
-    - assets/phaseeight.png
-    - assets/phasenine.png
-    - assets/phaseten.png
+    - assets/phase_1.png
+    - assets/phase_2.png
+    - assets/phase_3.png
+    - assets/phase_4.png
+    - assets/phase_5.png
+    - assets/phase_6.png
+    - assets/phase_7.png
+    - assets/phase_8.png
+    - assets/phase_9.png
+    - assets/phase_10.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

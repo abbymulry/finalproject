@@ -2720,7 +2720,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
             const SizedBox(height: 8),
             Image.asset(
-              'assets/phase_examples/phase_${player.currentPhase}.png',
+              'assets/phase_${player.currentPhase}.png',
               height: 80,
               fit: BoxFit.contain,
             ),
