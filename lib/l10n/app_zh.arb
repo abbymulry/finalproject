@@ -43,7 +43,9 @@
   "@welcome_user": {
     "description": "Welcome message with the user's name.",
     "placeholders": {
-      "userName": {}
+      "userName": {
+        "type" : "Object"
+      }
     }
   },
     "readplayph10" : "准备好玩 Phase 10 了吗?",
