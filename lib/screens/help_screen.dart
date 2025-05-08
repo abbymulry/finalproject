@@ -26,12 +26,24 @@ class HelpPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: SingleChildScrollView(
+        child:Container(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  'Click on a button below to learn more about the game!',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  )
+
+                ),
+
+                SizedBox(height: 20),
+                
                 SizedBox(
                   width: double.infinity, 
                   height: 60,             
@@ -52,6 +64,8 @@ class HelpPage extends StatelessWidget {
                     child: const Text('Objective'),
                   ),
                 ),
+
+                SizedBox(height: 20),
 
                 SizedBox(
                   width: double.infinity, 
@@ -74,6 +88,8 @@ class HelpPage extends StatelessWidget {
                   ),
                 ),
 
+                SizedBox(height: 20),
+
                 SizedBox(
                   width: double.infinity, 
                   height: 60,             
@@ -94,6 +110,8 @@ class HelpPage extends StatelessWidget {
                     child: const Text('Rules'),
                   ),
                 ),
+
+                SizedBox(height: 20),
 
                 SizedBox(
                   width: double.infinity, 
