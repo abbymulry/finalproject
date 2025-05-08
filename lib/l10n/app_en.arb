@@ -2,6 +2,19 @@
   "welcomeBack": "Welcome Back!",
   "email": "Email",
   "logintocontinueyourphase10journey" : "Login to continue your Phase 10 journey",
-  "emailhint" : "Enter your email address"
+  "emailhint" : "Enter your email address",
+  "p_email" : "Please enter your email",
+  "valid_email" : "Please enter a valid email",
+  "password" : "password",
+  "e_password" : "Enter your password",
+  "login" : "login",
+  "pe_password" : "Please enter your password",
+  "password_6" : "Password must be at least 6 characters",
+  "no_account" : "Don't have an account?",
+  "c_account" : "Create an account",
+  "logout" : "Logout",
+  "play" : "play",
+  "score" : "Score",
+  "help" : "Help"
 
 }

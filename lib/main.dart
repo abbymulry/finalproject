@@ -158,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
           // Logout button in the app bar
           TextButton.icon(
             icon: const Icon(Icons.logout),
-            label: const Text('Logout', style: TextStyle(color: Colors.white)),
+            label: Text(AppLocalizations.of(context).logout, style: TextStyle(color: Colors.white)),
             onPressed: () {
               // Sign out the user through the auth provider
               final authProvider = Provider.of<AuthProvider>(
@@ -175,10 +175,10 @@ class _MyHomePageState extends State<MyHomePage> {
       // Bottom navigation for switching between app sections
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: 'Play'),
-          BottomNavigationBarItem(icon: Icon(Icons.scoreboard), label: 'Score'),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
+        items: <BottomNavigationBarItem>[
+          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: AppLocalizations.of(context).play),
+          BottomNavigationBarItem(icon: Icon(Icons.scoreboard), label: AppLocalizations.of(context).score),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: AppLocalizations.of(context).help),
         ],
         currentIndex: pageIndex,
         onTap: _onItemTapped,

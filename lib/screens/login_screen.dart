@@ -162,10 +162,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       textInputAction: TextInputAction.next,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
+                          return AppLocalizations.of(context).p_email;
                         }
                         if (!value.contains('@')) {
-                          return 'Please enter a valid email';
+                          return AppLocalizations.of(context).valid_email;
                         }
                         return null;
                       },
@@ -189,8 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
+                        labelText: AppLocalizations.of(context).password,
+                        hintText: AppLocalizations.of(context).e_password,
                         prefixIcon: Icon(Icons.lock, color: Phase10Colors.primaryBlue),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -215,10 +215,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onFieldSubmitted: (_) => _login(),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return AppLocalizations.of(context).pe_password;
                         }
                         if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
+                          return AppLocalizations.of(context).password_6;
                         }
                         return null;
                       },
@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             )
                           : Text(
-                              'Login',
+                              AppLocalizations.of(context).login,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -266,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        AppLocalizations.of(context).no_account,
                         style: TextStyle(
                           color: Colors.grey.shade700,
                         ),
@@ -283,7 +283,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         ),
                         child: Text(
-                          'Create an account',
+                          AppLocalizations.of(context).c_account,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
