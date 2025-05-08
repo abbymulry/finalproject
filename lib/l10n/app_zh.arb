@@ -63,7 +63,7 @@
      "openscoresheet":"打开积分表",
      "startscoresheet" : "为你的游戏开启新的积分表",
      "viewprescoresheet" : "查看上一个积分表",
-     "seeprescoresheet" : "See your previously saved score sheet.",
+     "seeprescoresheet" : "查看你上一个保存的积分表",
      "nosavedscoresheet" : "没有找到以存的积分表",
      "prescoresheet" : "上一张积分表",
      "noplayeryet" : "还没有玩家",
