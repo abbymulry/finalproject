@@ -21,7 +21,7 @@ class ScoreRepository {
           // store score state in Firestore using userId as document ID
           await _firestore.collection(_scoresCollection).doc(userId).set(score.toJson());
         } catch (e) {
-          print('Error saving score: $e');
+          print(';;;;Error saving score: $e');
           throw Exception('Failed to save score: $e');
         }
    }

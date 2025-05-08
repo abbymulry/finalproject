@@ -20,7 +20,8 @@ class ScorePage extends StatefulWidget {
 }
 
 class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMixin {
-  var scoreInstance = Score(null);
+  final _currentScoreInstance = Score(null);
+  var _previousScoreInstance;
   final _scoreSession = ScoreSession();
   late AnimationController _animController;
   late Animation<double> _animation;
@@ -32,7 +33,6 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _checkForSavedScore();
     
     // Setup animation for UI elements
     _animController = AnimationController(
@@ -63,6 +63,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
 
     setState(() {
       _hasScore = hasScore;
+      if(_hasScore)
+      {
+        _previousScoreInstance = _scoreSession.currentScore;
+      }
       _isLoading = false;
     });
   }
@@ -73,7 +77,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
         _isLoading = true;
       });
 
-      await _scoreSession.createNewScore(scoreInstance.players);
+      await _scoreSession.createNewScore(_currentScoreInstance.players);
 
       setState((){
         _hasScore = true;
@@ -136,7 +140,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
               ),
             )
             : _oldScoreSheet
-            ? Text("Previous Score Sheet")
+            ? Text("View Score Sheet")
             : null,
             centerTitle: true,
       leading: (_newScoreSheet || _oldScoreSheet) ?  IconButton(
@@ -152,7 +156,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
       backgroundColor: Phase10Colors.backgroundGrey,
       body: SafeArea(
         child: Center(
-          child: _newScoreSheet
+          child: _isLoading 
+          ? _loadingScreen() 
+          : _newScoreSheet
           ? _buildScoreSheet()
           : _oldScoreSheet 
           ? _viewOldScoreSheet()
@@ -163,7 +169,6 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                   onPressed: () {
                     setState(() {
                       _newScoreSheet = true;
-                      // _hasScore = true;
                     });
                   },
                   style: ButtonStyle(
@@ -174,20 +179,29 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                   child: Text("Open Score Sheet"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // if(_hasScore)
-                    // {
-                      setState(() {
+                  onPressed: () async {
+                    await _checkForSavedScore();
+                    setState((){
+                      if(_hasScore) {
                         _oldScoreSheet = true;
-                      });
-                    // }
+                      }
+                      else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('No saved score sheet found.'),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    });
                   },
                   style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.all(
                         Colors.lightBlue[100],
                       ),
                     ),
-                  child: Text("View Previous Score Sheet"),
+                  child: Text("View Score Sheet"),
                 )
           ],
         ),
@@ -196,21 +210,54 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _viewOldScoreSheet()
-  {
-    return Column(
-      children: [],
-    );
+  Widget _viewOldScoreSheet() {
+  if (_previousScoreInstance == null) {
+    return Center(child: Text('No saved score sheet found.'));
   }
+  final leader = _previousScoreInstance.findLeader();
+  return ListView.builder(
+    itemCount: _previousScoreInstance.players.length,
+    itemBuilder: (context, index) {
+      final player = _previousScoreInstance.players[index];
+      return ListTile(
+        leading: CircleAvatar(
+          child: Text(player.name.substring(0, 1).toUpperCase()),
+        ),
+        title: Text(player.name),
+        subtitle: Text('Phase: ${player.currentPhase} | Score: ${player.score}'),
+        trailing: player == leader
+            ? Icon(Icons.emoji_events, color: Phase10Colors.accentOrange)
+            : null,
+      );
+    },
+  );
+}
 
+  Widget _loadingScreen() {
+    return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Phase10Colors.primaryBlue),
+              SizedBox(height: 16),
+              Text(
+                'Loading your game...',
+                style: TextStyle(
+                  color: Phase10Colors.darkText,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          );
+  }
+  
   Widget _buildScoreSheet() {
-    final leader = scoreInstance.findLeader(); // Ensure leader is defined here
+    final leader = _currentScoreInstance.findLeader(); // Ensure leader is defined here
     return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Player List
               Expanded(
-                child: scoreInstance.players.isEmpty
+                child: _currentScoreInstance.players.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -241,9 +288,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         ),
                       )
                     : ListView.builder(
-                        itemCount: scoreInstance.players.length,
+                        itemCount: _currentScoreInstance.players.length,
                         itemBuilder: (_, index) {
-                          final player = scoreInstance.players[index];
+                          final player = _currentScoreInstance.players[index];
                           return AnimatedBuilder(
                             animation: _animation,
                             builder: (context, child) {
@@ -419,7 +466,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: TextField(
-                                              controller: scoreInstance.scoreControllers[player],
+                                              controller: _currentScoreInstance.scoreControllers[player],
                                               keyboardType: TextInputType.number,
                                               decoration: InputDecoration(
                                                 hintText: 'Enter score for this round',
@@ -442,10 +489,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                                           child: Row(
                                             children: [
                                               Checkbox(
-                                                value: scoreInstance.phaseCompleted[player],
+                                                value: _currentScoreInstance.phaseCompleted[player],
                                                 onChanged: (value) {
                                                   setState(() {
-                                                    scoreInstance.phaseCompleted[player] = value ?? false;
+                                                    _currentScoreInstance.phaseCompleted[player] = value ?? false;
                                                   });
                                                 },
                                                 activeColor: Phase10Colors.primaryBlue,
@@ -511,13 +558,13 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: TextField(
-                              controller: scoreInstance.nameController,
+                              controller: _currentScoreInstance.nameController,
                               decoration: InputDecoration(
                                 hintText: 'Enter player name',
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.all(16),
                               ),
-                              onSubmitted: (_) => scoreInstance.addPlayer,
+                              onSubmitted: (_) => _currentScoreInstance.addPlayer,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Phase10Colors.darkText,
@@ -528,7 +575,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         SizedBox(width: 10),
                         ElevatedButton(
                           onPressed: () {
-                            if (scoreInstance.nameController.text.trim().isEmpty) {
+                            if (_currentScoreInstance.nameController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Please enter a player name'),
@@ -543,7 +590,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                             else {
                               setState(() {
                                 _animController.reset();
-                                scoreInstance.addPlayer(context);
+                                _currentScoreInstance.addPlayer(context);
                                 _animController.forward();
                               });
                             }
@@ -565,7 +612,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
               ),
               
               // Bottom action buttons
-              if (scoreInstance.players.isNotEmpty)
+              if (_currentScoreInstance.players.isNotEmpty)
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -584,9 +631,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          if (!scoreInstance.undoUsed) {
+                          if (!_currentScoreInstance.undoUsed) {
                             setState(() {
-                              scoreInstance.undoSubmit(context);
+                              _currentScoreInstance.undoSubmit(context);
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -613,10 +660,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: !scoreInstance.undoUsed
+                          backgroundColor: !_currentScoreInstance.undoUsed
                           ? Phase10Colors.primaryBlue
                           : Colors.white,
-                          foregroundColor: !scoreInstance.undoUsed
+                          foregroundColor: !_currentScoreInstance.undoUsed
                           ? Colors.white
                           : Colors.red,
                           disabledForegroundColor: Colors.grey.withOpacity(0.5),
@@ -625,7 +672,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                             side: BorderSide(
-                              color: (!scoreInstance.undoUsed) 
+                              color: (!_currentScoreInstance.undoUsed) 
                                 ? Phase10Colors.primaryBlue
                                 : Colors.grey.withOpacity(0.3),
                               width: 1.5,
@@ -645,7 +692,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                       ElevatedButton(
                         onPressed: () => {
                           setState((){
-                            scoreInstance.submitRound(context);
+                            _currentScoreInstance.submitRound(context);
                             }),
                             ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

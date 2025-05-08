@@ -15,7 +15,8 @@ class ScoreSession {
 
   Score? get currentScore => _currentScore;
   bool get isLoading => _isLoading;
-  bool? get hasScore => _currentScore != null;
+  bool get hasScore => _currentScore != null;
+
 
   Future<Score> createNewScore(List<Player> players) async {
     final userId = _repository.currentUserId;
