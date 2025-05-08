@@ -11,6 +11,10 @@
   "pe_password" : "Please enter your password",
   "password_6" : "Password must be at least 6 characters",
   "no_account" : "Don't have an account?",
-  "c_account" : "Create an account"
+  "c_account" : "Create an account",
+  "logout" : "Logout",
+  "play" : "play",
+  "score" : "Score",
+  "help" : "Help"
 
 }

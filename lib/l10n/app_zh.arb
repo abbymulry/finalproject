@@ -11,6 +11,10 @@
   "pe_password" : "请输入你的密码",
   "password_6" : "密码至少6个字符",
   "no_account" : "没有账号？",
-  "c_account" : "创建账号"
+  "c_account" : "创建账号",
+  "logout" : "登出",
+  "play" : "游玩",
+  "score" : "积分",
+  "help" : "帮助"
 
 }
