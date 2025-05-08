@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/score.dart';
 import '../services/score_session.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -101,7 +102,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
       case 10:
         return "1 set of 5 + 1 set of 3";
       default:
-        return "All phases complete!";
+        return AppLocalizations.of(context).phasecomplete;
     }
   }
 
@@ -112,7 +113,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
       ? AppBar(
               title: _newScoreSheet 
                   ? Text(
-                    'New Score Sheet',
+                    AppLocalizations.of(context).newscoresheet,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -121,7 +122,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                   )
                   : _oldScoreSheet
                   ? Text(
-                    "View Score Sheet",
+                    AppLocalizations.of(context).viewsocresheet,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -170,7 +171,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Score Tracker',
+                            AppLocalizations.of(context).scoretracker,
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -178,7 +179,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                             ),
                           ),
                           Text(
-                            'Create a new score sheet or view previous one',
+                            AppLocalizations.of(context).creatorview,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey.shade600,
@@ -193,16 +194,16 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                 SizedBox(height: 32),
           
                 buildScoreOption(
-                  title: "Open Score Sheet",
-                  description: "Start a new score sheet for your game.",
+                  title: AppLocalizations.of(context).openscoresheet,
+                  description: AppLocalizations.of(context).startscoresheet,
                   icon: Icons.paste,
                   color: Phase10Colors.primaryBlue,
                   onTap: _openScoreSheet,
                 ),
           
                 buildScoreOption(
-                  title: "View Previous Score Sheet",
-                  description: "See your previously saved score sheet.",
+                  title: AppLocalizations.of(context).viewprescoresheet,
+                  description: AppLocalizations.of(context).seeprescoresheet,
                   icon: Icons.history,
                   color: Phase10Colors.accentOrange,
                   onTap: _viewPreviousScoreSheet,
@@ -232,7 +233,7 @@ Future<void> _viewPreviousScoreSheet() async {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('No saved score sheet found.'),
+          content: Text(AppLocalizations.of(context).nosavedscoresheet),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -316,14 +317,14 @@ Future<void> _viewPreviousScoreSheet() async {
 
   Widget _viewOldScoreSheet() {
   if (_previousScoreInstance == null) {
-    return Center(child: Text('No saved score sheet found.'));
+    return Center(child: Text(AppLocalizations.of(context).nosavedscoresheet));
   }
   final leader = _previousScoreInstance.findLeader();
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        "Previous Score Sheet",
+        AppLocalizations.of(context).prescoresheet,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
@@ -369,7 +370,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             ),
                             SizedBox(height: 16),
                             Text(
-                              'No players yet',
+                              AppLocalizations.of(context).noplayeryet,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -378,7 +379,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Add players to start tracking scores',
+                              AppLocalizations.of(context).addplayertrack,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Phase10Colors.mediumGrey,
@@ -570,7 +571,7 @@ Future<void> _viewPreviousScoreSheet() async {
                                               controller: _currentScoreInstance.scoreControllers[player],
                                               keyboardType: TextInputType.number,
                                               decoration: InputDecoration(
-                                                hintText: 'Enter score for this round',
+                                                hintText: AppLocalizations.of(context).entersocreforround,
                                                 border: InputBorder.none,
                                                 contentPadding: EdgeInsets.symmetric(
                                                   horizontal: 16,
@@ -603,7 +604,7 @@ Future<void> _viewPreviousScoreSheet() async {
                                               ),
                                               Expanded(
                                                 child: Text(
-                                                  "Phase Complete",
+                                                  AppLocalizations.of(context).phasecomplete1,
                                                   style: TextStyle(
                                                     fontSize: 14,
                                                     color: Phase10Colors.darkText,
@@ -640,7 +641,7 @@ Future<void> _viewPreviousScoreSheet() async {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Add Player',
+                      AppLocalizations.of(context).addplayer,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -660,7 +661,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             child: TextField(
                               controller: _currentScoreInstance.nameController,
                               decoration: InputDecoration(
-                                hintText: 'Enter player name',
+                                hintText: AppLocalizations.of(context).enterplayername,
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.all(16),
                               ),
@@ -678,7 +679,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             if (_currentScoreInstance.nameController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Please enter a player name'),
+                                  content: Text(AppLocalizations.of(context).plsenterplayername),
                                   backgroundColor: Colors.red,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
@@ -703,7 +704,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             ),
                             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                           ),
-                          child: Text('Add'),
+                          child: Text(AppLocalizations.of(context).add),
                         ),
                       ],
                     ),
@@ -737,7 +738,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             });
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Last round undone'),
+                                content: Text(AppLocalizations.of(context).lastgameundone),
                                 backgroundColor: Color(0xFFF7A928),
                                 behavior: SnackBarBehavior.floating,
                                 shape: RoundedRectangleBorder(
@@ -749,7 +750,7 @@ Future<void> _viewPreviousScoreSheet() async {
                           else {
                             ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Please submit a round before pressing undo'),
+                                  content: Text(AppLocalizations.of(context).beforeundo),
                                   backgroundColor: Colors.red,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
@@ -796,7 +797,7 @@ Future<void> _viewPreviousScoreSheet() async {
                             }),
                             ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Round submitted successfully!'),
+                              content: Text(AppLocalizations.of(context).roundsubmittedsucces),
                               backgroundColor: Colors.green,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
@@ -819,7 +820,7 @@ Future<void> _viewPreviousScoreSheet() async {
                           children: [
                             Icon(Icons.check, size: 18),
                             SizedBox(width: 4),
-                            Text("Submit"),
+                            Text(AppLocalizations.of(context).submit),
                           ],
                         ),
                       ),
@@ -840,7 +841,7 @@ Future<void> _viewPreviousScoreSheet() async {
                           children: [
                             Icon(Icons.save, size: 18),
                             SizedBox(width: 4),
-                            Text("Save"),
+                            Text(AppLocalizations.of(context).save),
                           ],
                         ),
                       ),
