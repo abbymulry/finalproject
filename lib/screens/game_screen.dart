@@ -238,6 +238,34 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  String _getCardImagePath(game_card.Card card) {
+    if (card.type == game_card.CardType.skip) return 'assets/skip.png';
+    if (card.type == game_card.CardType.wild) return 'assets/wild.png';
+
+    final color = card.color.name.toLowerCase();
+    final value = _numberToWord(card.value);
+    return 'assets/${color}${value}.png';
+  }
+
+  String _numberToWord(int number) {
+    const words = [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve",
+    ];
+    return (number >= 0 && number <= 12) ? words[number] : number.toString();
+  }
+
   void _log(String message) {
     print('[PHASE10] $message');
   }
@@ -3259,16 +3287,26 @@ class _GameScreenState extends State<GameScreen> {
                                 ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Center(
-                                child: Text(
-                                  card.toString(),
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight:
-                                        isSelected || isNewCard
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                  ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Image.asset(
+                                  _getCardImagePath(card),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    // fallback to text if image not found
+                                    return Center(
+                                      child: Text(
+                                        card.toString(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontWeight:
+                                              isSelected || isNewCard
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
