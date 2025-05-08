@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'play_screen.dart';
 
 class HelpPage extends StatefulWidget {
   const HelpPage({super.key});
@@ -26,7 +27,6 @@ class _HelpPageState extends State<HelpPage> {
     {
       'title': 'Special Cards',
       'text': 'Wild: Acts as any number or color.\nSkip: Skips the next player’s turn. They draw 2 cards and continue.',
-      'image': 'assets/skip_card.png',
     },
   ];
 
@@ -89,7 +89,12 @@ class _HelpPageState extends State<HelpPage> {
                       ),
                     if (index == helpContent.length - 1)
                       TextButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context, 
+                            MaterialPageRoute(builder: (context) => PlayPage()),
+                          );
+                        },
                         child: const Text('Done', style: TextStyle(color: Colors.red)),
                       ),
                   ],
