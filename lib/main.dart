@@ -22,16 +22,15 @@ import 'package:firebase_core/firebase_core.dart';
 // Provider package for state management
 import 'package:provider/provider.dart';
 // Custom project imports
-import 'providers/auth_provider.dart';   // Authentication logic
-import 'screens/login_screen.dart';      // Login UI screen
-import 'models/user_model.dart';         // User data model
-import 'screens/game_screen.dart';       // Main game screen
-import 'screens/play_screen.dart';       // Play interface screen
-import 'screens/help_screen.dart';       // Help/instructions screen
-import 'screens/score_screen.dart';      // Scoreboard screen
-import 'services/game_session.dart';     // Game session management
+import 'providers/auth_provider.dart'; // Authentication logic
+import 'screens/login_screen.dart'; // Login UI screen
+import 'models/user_model.dart'; // User data model
+import 'screens/game_screen.dart'; // Main game screen
+import 'screens/play_screen.dart'; // Play interface screen
+import 'screens/help_screen.dart'; // Help/instructions screen
+import 'screens/score_screen.dart'; // Scoreboard screen
+import 'services/game_session.dart'; // Game session management
 import 'package:flutter_gen/gen_l10n/app_localizations.dart'; //Language Support
-
 
 // =====================================================
 // Color Palette Definition
@@ -47,7 +46,6 @@ class ProjectPalette {
   Color green = Color.fromARGB(255, 0, 255, 73);
   Color blue = Color.fromARGB(255, 0, 228, 255);
 }
-  
 
 // =====================================================
 // FLUTTER UI IMPLEMENTATION
@@ -67,9 +65,7 @@ void main() async {
   // Launch the application with AuthProvider for state management
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
       child: const MyApp(),
     ),
   );
@@ -92,7 +88,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     // Access the auth provider for user authentication state
     final authProvider = Provider.of<AuthProvider>(context);
-    
+
     // Check current user on startup only once to prevent infinite loops
     if (!_hasCheckedUser) {
       _hasCheckedUser = true;
@@ -113,7 +109,10 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       // Conditional rendering based on authentication state
-      home: authProvider.isAuthenticated ? const MyHomePage() : const LoginScreen(),
+      home:
+          authProvider.isAuthenticated
+              ? const MyHomePage()
+              : const LoginScreen(),
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
     );
@@ -132,21 +131,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   // Track the currently selected page index for bottom navigation
   int pageIndex = 0;
-  
+
   // Define the pages accessible through the bottom navigation bar
   static const List<Widget> _pages = <Widget>[
-    PlayPage(),       // Game play interface
-    ScorePage(),      // Score tracking and history
-    HelpPage(),       // Game rules and instructions
+    PlayPage(), // Game play interface
+    ScorePage(), // Score tracking and history
+    HelpPage(), // Game rules and instructions
   ];
-  
+
   // Handle bottom navigation bar item selection
   void _onItemTapped(int index) {
     setState(() {
       pageIndex = index;
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
     // Main scaffold with app bar, body, and bottom navigation
@@ -162,7 +161,10 @@ class _MyHomePageState extends State<MyHomePage> {
             label: const Text('Logout', style: TextStyle(color: Colors.white)),
             onPressed: () {
               // Sign out the user through the auth provider
-              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              final authProvider = Provider.of<AuthProvider>(
+                context,
+                listen: false,
+              );
               authProvider.signOut();
             },
           ),
