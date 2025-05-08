@@ -25,10 +25,9 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
   final _scoreSession = ScoreSession();
   late AnimationController _animController;
   late Animation<double> _animation;
+  late Animation<double> _scaleAnimation;
   bool _newScoreSheet = false;
   bool _oldScoreSheet = false;
-  bool _isLoading = false;
-  bool _hasScore = false;
   
   @override
   void initState() {
@@ -38,6 +37,10 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
     _animController = AnimationController(
       duration: const Duration(milliseconds: 500),
       vsync: this,
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.95, end: 1.0).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeOut)
     );
     
     _animation = CurvedAnimation(
@@ -55,34 +58,13 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
   }
 
   Future<void> _checkForSavedScore() async {
-    setState(() {
-      _isLoading = true;
-    });
-
     bool hasScore = await _scoreSession.loadScoreForCurrentUser();
-
-    setState(() {
-      _hasScore = hasScore;
-      if(_hasScore)
-      {
-        _previousScoreInstance = _scoreSession.currentScore;
-      }
-      _isLoading = false;
-    });
+    _previousScoreInstance = _scoreSession.currentScore;
   }
 
   Future<void> _saveScore() async {
     try{
-      setState(() {
-        _isLoading = true;
-      });
-
       await _scoreSession.createNewScore(_currentScoreInstance.players);
-
-      setState((){
-        _hasScore = true;
-        _isLoading = false;
-      });
     }
     catch(e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -92,9 +74,6 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
             behavior: SnackBarBehavior.floating,
           ),
         );
-        setState(() {
-          _isLoading = false;
-        });
     }
   }
 
@@ -129,82 +108,207 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: _newScoreSheet 
-            ? Text(
-              'New Score Sheet',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Phase10Colors.darkText,
-              ),
+      appBar: (_newScoreSheet || _oldScoreSheet) 
+      ? AppBar(
+              title: _newScoreSheet 
+                  ? Text(
+                    'New Score Sheet',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Phase10Colors.darkText,
+                    ),
+                  )
+                  : _oldScoreSheet
+                  ? Text(
+                    "View Score Sheet",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Phase10Colors.darkText,
+                    ),
+                    )
+                  : null,
+                  centerTitle: true,
+            leading: (_newScoreSheet || _oldScoreSheet) ?  IconButton(
+              onPressed: () {
+              setState(() {
+                _newScoreSheet = false;
+                _oldScoreSheet = false;
+              });
+              }, 
+              icon: Icon(Icons.arrow_back))
+              : null,
             )
-            : _oldScoreSheet
-            ? Text("View Score Sheet")
-            : null,
-            centerTitle: true,
-      leading: (_newScoreSheet || _oldScoreSheet) ?  IconButton(
-        onPressed: () {
-        setState(() {
-          _newScoreSheet = false;
-          _oldScoreSheet = false;
-        });
-        }, 
-        icon: Icon(Icons.arrow_back))
-        : null,
-      ),
+            :null,
       backgroundColor: Phase10Colors.backgroundGrey,
       body: SafeArea(
-        child: Center(
-          child: _isLoading 
-          ? _loadingScreen() 
-          : _newScoreSheet
-          ? _buildScoreSheet()
-          : _oldScoreSheet 
-          ? _viewOldScoreSheet()
-          : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _newScoreSheet = true;
-                    });
+        child: SingleChildScrollView(
+          child: AnimatedBuilder(
+            animation: _animController,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: child,
+                    );
                   },
-                  style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.lightBlue[100],
-                      ),
-                    ),
-                  child: Text("Open Score Sheet"),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await _checkForSavedScore();
-                    setState((){
-                      if(_hasScore) {
-                        _oldScoreSheet = true;
-                      }
-                      else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('No saved score sheet found.'),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: _newScoreSheet
+              ? _buildScoreSheet()
+              : _oldScoreSheet 
+              ? _viewOldScoreSheet()
+              : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    Image.asset('assets/Phase10Logo.png', height: 60),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Score Tracker',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Phase10Colors.darkText,
+                            ),
                           ),
-                        );
-                      }
-                    });
-                  },
-                  style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        Colors.lightBlue[100],
+                          Text(
+                            'Create a new score sheet or view previous one',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  child: Text("View Score Sheet"),
-                )
-          ],
+                  ],
+                ),
+                
+                SizedBox(height: 32),
+          
+                buildScoreOption(
+                  title: "Open Score Sheet",
+                  description: "Start a new score sheet for your game.",
+                  icon: Icons.add_circle_outline,
+                  color: Phase10Colors.primaryBlue,
+                  onTap: _openScoreSheet,
+                ),
+          
+                buildScoreOption(
+                  title: "View Previous Score Sheet",
+                  description: "See your previously saved score sheet.",
+                  icon: Icons.history,
+                  color: Phase10Colors.accentOrange,
+                  onTap: _viewPreviousScoreSheet,
+                ),
+              ],
+            ),
+            ),
+          ),
         ),
+      ),
+    );
+  }
+
+  void _openScoreSheet() {
+  setState(() {
+    _newScoreSheet = true;
+    _oldScoreSheet = false;
+  });
+}
+
+Future<void> _viewPreviousScoreSheet() async {
+  await _checkForSavedScore();
+  setState(() {
+    if (_previousScoreInstance != null) {
+      _oldScoreSheet = true;
+      _newScoreSheet = false;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No saved score sheet found.'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  });
+}
+
+  Widget buildScoreOption({
+    required String title,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1.0 : 0.6,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: enabled
+              ? [
+                  BoxShadow(
+                    color: color.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: enabled ? onTap : null,
+            splashColor: color.withOpacity(0.1),
+            highlightColor: color.withOpacity(0.05),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Icon(icon, color: color, size: 32),
+                  SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Phase10Colors.darkText,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          description,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, color: color, size: 20),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -215,49 +319,45 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
     return Center(child: Text('No saved score sheet found.'));
   }
   final leader = _previousScoreInstance.findLeader();
-  return ListView.builder(
-    itemCount: _previousScoreInstance.players.length,
-    itemBuilder: (context, index) {
-      final player = _previousScoreInstance.players[index];
-      return ListTile(
-        leading: CircleAvatar(
-          child: Text(player.name.substring(0, 1).toUpperCase()),
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "Previous Score Sheet",
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: Phase10Colors.darkText,
         ),
-        title: Text(player.name),
-        subtitle: Text('Phase: ${player.currentPhase} | Score: ${player.score}'),
-        trailing: player == leader
-            ? Icon(Icons.emoji_events, color: Phase10Colors.accentOrange)
-            : null,
-      );
-    },
+      ),
+      SizedBox(height: 16),
+      ListView.builder(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: _previousScoreInstance.players.length,
+        itemBuilder: (context, index) {
+          final player = _previousScoreInstance.players[index];
+          return ListTile(
+            leading: CircleAvatar(
+              child: Text(player.name.substring(0, 1).toUpperCase()),
+            ),
+            title: Text(player.name),
+            subtitle: Text('Phase: ${player.currentPhase} | Score: ${player.score}'),
+            trailing: player == leader
+                ? Icon(Icons.emoji_events, color: Phase10Colors.accentOrange)
+                : null,
+          );
+        },
+      ),
+    ],
   );
 }
-
-  Widget _loadingScreen() {
-    return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: Phase10Colors.primaryBlue),
-              SizedBox(height: 16),
-              Text(
-                'Loading your game...',
-                style: TextStyle(
-                  color: Phase10Colors.darkText,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          );
-  }
   
   Widget _buildScoreSheet() {
     final leader = _currentScoreInstance.findLeader(); // Ensure leader is defined here
     return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Player List
-              Expanded(
-                child: _currentScoreInstance.players.isEmpty
+               _currentScoreInstance.players.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -288,6 +388,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                         ),
                       )
                     : ListView.builder(
+                        shrinkWrap: true,
                         itemCount: _currentScoreInstance.players.length,
                         itemBuilder: (_, index) {
                           final player = _currentScoreInstance.players[index];
@@ -521,7 +622,6 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           );
                         },
                       ),
-              ),
 
               Container(
                 padding: EdgeInsets.all(16),
@@ -684,7 +784,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.undo, size: 18),
-                            SizedBox(width: 8),
+                            SizedBox(width: 4),
                             Text("Undo"),
                           ],
                         ),
@@ -718,8 +818,8 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.check, size: 18),
-                            SizedBox(width: 8),
-                            Text("Submit Round"),
+                            SizedBox(width: 4),
+                            Text("Submit"),
                           ],
                         ),
                       ),
@@ -739,10 +839,11 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.save, size: 18),
-                            SizedBox(width: 8),
+                            SizedBox(width: 4),
                             Text("Save"),
                           ],
-                        ),),
+                        ),
+                      ),
                     ],
                   ),
                 ),
