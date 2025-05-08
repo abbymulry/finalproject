@@ -40,8 +40,6 @@ class Score {
   void submitRound(BuildContext context) {
       for(int i = 0; i < _players.length; i++)
       {
-        if(_players[i].currentPhase < 11)
-        {
           _previousEntries[i].currentPhase = _players[i].currentPhase;
           _previousEntries[i].score = _players[i].score;
           final scoreText = _scoreControllers[_players[i]]?.text??'';
@@ -49,11 +47,10 @@ class Score {
           _players[i].score += score;
           if(_phaseCompleted[_players[i]] == true)
           {
-            _players[i].currentPhase += 1;
+            if(_players[i].currentPhase < 11) _players[i].currentPhase += 1;
           }
           _scoreControllers[_players[i]]?.clear();
           _phaseCompleted[_players[i]] = false;
-        }
       }
       _undoUsed = false;
   }
@@ -76,7 +73,7 @@ class Score {
     for (var player in _players) {
       if (player.currentPhase > leader.currentPhase) {
         leader = player;
-      } else if (player.currentPhase == leader.currentPhase && player.score < leader.score) {
+      } else if (player.currentPhase == leader.currentPhase && player.score <= leader.score) {
         leader = player;
       }
     }
