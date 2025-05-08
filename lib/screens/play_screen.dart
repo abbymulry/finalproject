@@ -19,6 +19,7 @@ import '../services/game_session.dart';
 import '../models/player.dart';
 import 'game_screen.dart';
 import 'join_game_screen.dart';
+import 'help_screen.dart';
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -471,7 +472,10 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                               SizedBox(height: 12),
                               OutlinedButton(
                                 onPressed: () {
-                                  // Could navigate to help screen or show tutorial
+                                    Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => HelpPage()),
+                                  );
                                 },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: Phase10Colors.primaryBlue,

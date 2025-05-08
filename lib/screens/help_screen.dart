@@ -32,20 +32,13 @@ class HelpPage extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ADDING THE LOGO HERE
-                Image.asset('assets/Phase10Logo.png', height: 100),
                 const SizedBox(height: 40),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 18),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed:
@@ -57,17 +50,12 @@ class HelpPage extends StatelessWidget {
                   child: const Text('Objective'),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 18),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   onPressed:
@@ -79,15 +67,10 @@ class HelpPage extends StatelessWidget {
                   child: const Text('Setup'),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 18),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -101,15 +84,10 @@ class HelpPage extends StatelessWidget {
                   child: const Text('Rules'),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    textStyle: const TextStyle(fontSize: 18),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
