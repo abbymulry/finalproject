@@ -2978,3 +2978,43 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 }
+
+// Update the theme to use colorScheme
+ThemeData _buildTheme() {
+  final ThemeData base = ThemeData.light();
+  return base.copyWith(
+    primaryColor: Colors.blueGrey,
+    colorScheme: base.colorScheme.copyWith(
+      secondary: Colors.cyan,
+    ),
+    buttonTheme: base.buttonTheme.copyWith(
+      buttonColor: Colors.cyan,
+      textTheme: ButtonTextTheme.primary,
+    ),
+    textTheme: base.textTheme.apply(
+      fontFamily: 'Roboto',
+      bodyColor: Colors.blueGrey[800],
+      displayColor: Colors.blueGrey[800],
+    ),
+  );
+}
+
+// Correct syntax errors
+Widget _buildGameBody() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          'Welcome to the Game!',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 20),
+        ElevatedButton(
+          onPressed: () {},
+          child: Text('Start Game'),
+        ),
+      ],
+    ),
+  );
+}
