@@ -21,6 +21,37 @@
   "c_password" : "确认密码",
   "confirm_password" : "请确认你的密码",
   "notmatch_password" : "密码不匹配",
-  "haccount_login" : "已经有账号了？登录"
+  "haccount_login" : "已经有账号了？登录",
+  "newgame" : "新游戏",
+  "choosegt" : "选择游玩方式:",
+  "play_ai" : "AI对局",
+  "multiplayer" : "多人游戏",
+  "freshgame" : "开启新的Phase 10对局",
+  "continuegame" : "继续游戏",
+  "resumesavedgame" : "返回已保存的对局",
+  "joingame" : "加入对局",
+  "playfreindonline" : "与好友在线游玩",
+  "aboutphase10" : "关于 Phase 10",
+  "phase10_explain" : "Phase 10 是一款纸牌游戏，玩家需要按顺序完成10个阶段。每个阶段都需要特定的卡牌组合，如run和set。",
+  "learnmore" : "了解更多",
+  "gameinprocess" : "正在进行的游戏",
+  "noactgame" : "没有正在运行的游戏",
+  "yccontinuesavedgame" : "你可以继续游玩保存的游戏",
+  "startnewgametoplay" : "开启新的对局",
+  "gameoption" : "游戏选项",
+  "welcome_user" : "欢迎回来,{userName}!",
+  "@welcome_user": {
+    "description": "Welcome message with the user's name.",
+    "placeholders": {
+      "userName": {}
+    }
+  },
+    "readplayph10" : "准备好玩 Phase 10 了吗?",
+    "gamecreated" : "游戏创建成功!",
+    "sharecodejoin" : "分享代码邀请朋友:",
+     "waitplayerjoin" : "'等待玩家加入...'",
+     "startgame" : "开始游戏",
+     "nogameinprocess":"没有正在运行的游戏",
+     "loadinggame" : "正在加载你的游戏..."
 
 }

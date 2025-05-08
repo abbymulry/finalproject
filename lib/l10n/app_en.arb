@@ -21,6 +21,37 @@
   "c_password" : "Confirm Password",
   "confirm_password" : "Please confirm your password",
   "notmatch_password" : "Passwords do not match",
-  "haccount_login" : "Already have an account? Login"
+  "haccount_login" : "Already have an account? Login",
+  "newgame" : "New game",
+  "choosegt" : "Choose game type:",
+  "play_ai" : "Play vs AI",
+  "multiplayer" : "Multiplayer",
+  "freshgame" : "Start a fresh game of Phase 10",
+  "continuegame" : "Continue Game",
+  "resumesavedgame" : "Resume your saved game",
+  "joingame" : "Join Game",
+  "playfreindonline" : "Play with friends online",
+  "aboutphase10" : "About Phase 10",
+  "phase10_explain" : "Phase 10 is a card game where players attempt to complete 10 phases in order. Each phase requires a specific combination of cards like runs and sets.",
+  "learnmore" : "Learn More",
+  "gameinprocess" : "Game in Progress",
+  "noactgame" : "No Active Game",
+  "yccontinuesavedgame" : "You can continue your saved game",
+  "startnewgametoplay" : "Start a new game to begin playing",
+  "gameoption" : "Game Options",
+  "welcome_user" : "Welcome,{userName}!",
+  "@welcome_user": {
+    "description": "Welcome message with the user's name.",
+    "placeholders": {
+      "userName": {}
+    }
+  },
+  "readplayph10" : "Ready to play Phase 10?",
+  "gamecreated" : "Game Created!",
+  "sharecodejoin" : "Share this code with a friend to join:",
+  "waitplayerjoin" : "'Waiting for players to join...'",
+  "startgame" : "Start Game",
+  "nogameinprocess":"No game in progress.",
+  "loadinggame" : "Loading your game..."
 
 }
