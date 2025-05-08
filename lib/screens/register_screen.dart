@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -50,7 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Register"),
+        title:  Text(AppLocalizations.of(context).register),
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
       ),
@@ -71,17 +72,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // email field
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).email,
                     border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context).p_email;
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context).valid_email;
                     }
                     return null;
                   },
@@ -91,17 +92,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // password field
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).password,
                     border: OutlineInputBorder(),
                   ),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
+                      return AppLocalizations.of(context).pea_password;
                     }
                     if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                      return AppLocalizations.of(context).password_6;
                     }
                     return null;
                   },
@@ -111,17 +112,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 // confirm password field
                 TextFormField(
                   controller: _confirmPasswordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).c_password,
                     border: OutlineInputBorder(),
                   ),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
+                      return AppLocalizations.of(context).confirm_password;
                     }
                     if (value != _passwordController.text) {
-                      return 'Passwords do not match';
+                      return AppLocalizations.of(context).notmatch_password;
                     }
                     return null;
                   },
@@ -138,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   child: authProvider.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Register'),
+                      :  Text(AppLocalizations.of(context).register),
                 ),
                 const SizedBox(height: 16),
                 
@@ -147,7 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Already have an account? Login'),
+                  child: Text(AppLocalizations.of(context).haccount_login),
                 ),
               ],
             ),

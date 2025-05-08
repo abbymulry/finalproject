@@ -9,12 +9,18 @@
   "e_password" : "Enter your password",
   "login" : "login",
   "pe_password" : "Please enter your password",
+  "pea_password" : "Please enter a password",
   "password_6" : "Password must be at least 6 characters",
   "no_account" : "Don't have an account?",
   "c_account" : "Create an account",
   "logout" : "Logout",
   "play" : "play",
   "score" : "Score",
-  "help" : "Help"
+  "help" : "Help",
+  "register" : "Register",
+  "c_password" : "Confirm Password",
+  "confirm_password" : "Please confirm your password",
+  "notmatch_password" : "Passwords do not match",
+  "haccount_login" : "Already have an account? Login"
 
 }
