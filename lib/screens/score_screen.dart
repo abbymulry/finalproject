@@ -195,7 +195,7 @@ class _ScorePageState extends State<ScorePage> with SingleTickerProviderStateMix
                 buildScoreOption(
                   title: "Open Score Sheet",
                   description: "Start a new score sheet for your game.",
-                  icon: Icons.add_circle_outline,
+                  icon: Icons.paste,
                   color: Phase10Colors.primaryBlue,
                   onTap: _openScoreSheet,
                 ),
