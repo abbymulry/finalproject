@@ -52,6 +52,23 @@
   "waitplayerjoin" : "'Waiting for players to join...'",
   "startgame" : "Start Game",
   "nogameinprocess":"No game in progress.",
-  "loadinggame" : "Loading your game..."
-
+  "loadinggame" : "Loading your game...",
+  "phasecomplete" : "All phases complete!",
+  "newscoresheet" : "New Score Sheet",
+  "viewsocresheet" : "View Score Sheet",
+  "openscoresheet":"Open Score Sheet",
+  "nosavedscoresheet" : "No saved score sheet found.",
+  "noplayeryet" : "No players yet",
+  "addplayertrack" : "Add players to start tracking scores",
+  "entersocreforround" : "Enter score for this round",
+  "phasecomplete1" : "Phase Complete",
+  "addplayer" : "Add Player",
+  "enterplayername" : "Enter player name",
+  "plsenterplayername" : "Please enter a player name",
+  "add" : "Add",
+  "lastgameundone" : "Last round undone",
+  "beforeundo" : "Please submit a round before pressing undo",
+  "roundsubmittedsucces" : "Round submitted successfully!",
+  "submitround" : "Submit Round",
+  "save" : "Save"
 }
