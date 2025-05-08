@@ -87,16 +87,6 @@ class _HelpPageState extends State<HelpPage> {
                           curve: Curves.easeInOut,
                         ),
                       ),
-                    if (index == helpContent.length - 1)
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context, 
-                            MaterialPageRoute(builder: (context) => PlayPage()),
-                          );
-                        },
-                        child: const Text('Done', style: TextStyle(color: Colors.red)),
-                      ),
                   ],
                 ),
               ],
