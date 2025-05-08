@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'play_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
 
 class HelpPage extends StatefulWidget {
   const HelpPage({super.key});
@@ -11,30 +12,30 @@ class HelpPage extends StatefulWidget {
 class _HelpPageState extends State<HelpPage> {
   final PageController _controller = PageController();
 
-  final List<Map<String, String>> helpContent = [
-    {
-      'title': 'Objective',
-      'text': 'Be the first player to complete all ten phases by discarding your entire hand according to the requirements of the current phase.',
-    },
-    {
-      'title': 'Setup',
-      'text': 'Shuffle the deck and deal 10 cards to each player. Place the rest as a draw pile. Flip one card over to start the discard pile.',
-    },
-    {
-      'title': 'Rules',
-      'text': 'On your turn, draw a card and try to complete the current phase. Then discard a card. Complete all 10 phases to win!',
-    },
-    {
-      'title': 'Special Cards',
-      'text': 'Wild: Acts as any number or color.\nSkip: Skips the next player’s turn. They draw 2 cards and continue.',
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
+    final List<Map<String, String>> helpContent = [
+    {
+      'title': AppLocalizations.of(context).object,
+      'text': AppLocalizations.of(context).helppage1,
+    },
+    {
+      'title': AppLocalizations.of(context).setup,
+      'text': AppLocalizations.of(context).helppage2,
+    },
+    {
+      'title': AppLocalizations.of(context).rules,
+      'text': AppLocalizations.of(context).helppage3,
+    },
+    {
+      'title': AppLocalizations.of(context).specialcard,
+      'text': AppLocalizations.of(context).helppage4,
+    },
+  ];
     return Scaffold(
       appBar: AppBar(
-        title: const Text('How to Play'),
+        title: Text(AppLocalizations.of(context).howtoplay),
         backgroundColor: Colors.white,
         foregroundColor: Colors.red,
         elevation: 0,
