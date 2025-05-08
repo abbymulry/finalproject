@@ -1,143 +1,105 @@
 import 'package:flutter/material.dart';
 
-
-class HelpPage extends StatelessWidget {
+class HelpPage extends StatefulWidget {
   const HelpPage({super.key});
 
-  void _showHelpDialog(BuildContext context, String title, String content) {
-    showDialog<String>(
-      context: context,
-      builder:
-          (BuildContext context) => AlertDialog(
-            title: Text(title),
-            content: Text(content),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.pop(context, 'OK'),
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-    );
-  }
+  @override
+  State<HelpPage> createState() => _HelpPageState();
+}
+
+class _HelpPageState extends State<HelpPage> {
+  final PageController _controller = PageController();
+
+  final List<Map<String, String>> helpContent = [
+    {
+      'title': 'Objective',
+      'text': 'Be the first player to complete all ten phases by discarding your entire hand according to the requirements of the current phase.',
+    },
+    {
+      'title': 'Setup',
+      'text': 'Shuffle the deck and deal 10 cards to each player. Place the rest as a draw pile. Flip one card over to start the discard pile.',
+    },
+    {
+      'title': 'Rules',
+      'text': 'On your turn, draw a card and try to complete the current phase. Then discard a card. Complete all 10 phases to win!',
+    },
+    {
+      'title': 'Special Cards',
+      'text': 'Wild: Acts as any number or color.\nSkip: Skips the next player’s turn. They draw 2 cards and continue.',
+      'image': 'assets/skip_card.png',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Center(
-        child:Container(
-          child: Padding(
+      appBar: AppBar(
+        title: const Text('How to Play'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.red,
+        elevation: 0,
+      ),
+      body: PageView.builder(
+        controller: _controller,
+        itemCount: helpContent.length,
+        itemBuilder: (context, index) {
+          final item = helpContent[index];
+          return Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Click on a button below to learn more about the game!',
-                  style: TextStyle(
-                    fontSize: 24,
+                  item['title']!,
+                  style: const TextStyle(
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.red,
-                  )
-
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-
-                SizedBox(height: 20),
-                
-                SizedBox(
-                  width: double.infinity, 
-                  height: 60,             
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),  
-                   onPressed: () => _showHelpDialog(
-                    context,
-                    'Objective',
-                    'Be the first player to complete all ten phases by discarding your entire hand...',
+                const SizedBox(height: 30),
+                Text(
+                  item['text']!,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    height: 1.6,
                   ),
-                    child: const Text('Objective'),
-                  ),
+                  textAlign: TextAlign.left,
                 ),
-
-                SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity, 
-                  height: 60,             
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),  
-                   onPressed: () => _showHelpDialog(
-                    context,
-                    'Setup',
-                    'Shuffle the deck and deal 10 cards face down to each player. The remaining deck is placed face down in the center, forming the draw pile. Flip the top card of the draw pile over to reveal the discard pile.',
-                  ),
-                    child: const Text('Setup'),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity, 
-                  height: 60,             
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),  
-                   onPressed: () => _showHelpDialog(
-                    context,
-                    'Rules',
-                    'At the beginning of your turn you will draw a card from the draw pile. At the end of your turn you will discard a card into the discard pile. During your turn you will attempt to discard as many cards as you can while meeting the requirements of the current phase. Requirements can include a run (a sequence of cards of the same suit ascending or descending), or a set (3 or 4 of the same number). Once you discard all your cards for the current phase, you will move onto the next phase. The player to complete all 10 phases first wins!',
-                  ),
-                    child: const Text('Rules'),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity, 
-                  height: 60,             
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    textStyle: const TextStyle(fontSize: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),  
-                   onPressed: () => _showHelpDialog(
-                    context,
-                    'Special Cards',
-                    'Wild Card: Can be played as any number or color to complete a run or set.\n\nSkip Card: Place this card on top of the discard pile to skip the next player\'s turn. The next player draws 2 cards and completes their turn.',
-                  ),
-                    child: const Text('Special Cards'),
-                  ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (index > 0)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Colors.red),
+                        onPressed: () => _controller.previousPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                    if (index < helpContent.length - 1)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward, color: Colors.red),
+                        onPressed: () => _controller.nextPage(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                    if (index == helpContent.length - 1)
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Done', style: TextStyle(color: Colors.red)),
+                      ),
+                  ],
                 ),
               ],
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 }
+
