@@ -7,6 +7,8 @@ import '../models/game.dart';
 import '../models/player.dart';
 import '../models/card.dart' as game_card;
 import '../services/game_session.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class GameScreen extends StatefulWidget {
   final Game engine;
@@ -23,6 +25,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _phaseAttemptedThisTurn = false;
   bool _hasDrawnThisTurn = false;
   game_card.Card? _drawnCard;
+  File? _uploadedImage;
+  List<game_card.Card> _manualCardEntries = [];
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -46,6 +51,38 @@ class _GameScreenState extends State<GameScreen> {
         _handleError('Error in post-frame callback', e);
       }
     });
+  }
+
+  Future<void> _pickCardImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      setState(() {
+        _uploadedImage = File(pickedFile.path);
+        _manualCardEntries = [];
+      });
+    }
+  }
+
+  void _replaceHandWithManualEntries(Player player) {
+    if (_manualCardEntries.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please add at least one card to replace your hand.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      player.hand = List.from(_manualCardEntries);
+      _uploadedImage = null;
+      _manualCardEntries.clear();
+    });
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Your hand has been updated!')));
   }
 
   String getPhaseDescription(int phase) {
@@ -2837,6 +2874,102 @@ class _GameScreenState extends State<GameScreen> {
               "Your Hand:",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
+            // player Hand
+            const Text(
+              "Your Hand:",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+
+            // ⬇️ Add this right after the label
+            ElevatedButton(
+              onPressed: _pickCardImage,
+              child: const Text("Upload Image of Real Cards"),
+            ),
+            if (_uploadedImage != null) ...[
+              const SizedBox(height: 12),
+              Image.file(_uploadedImage!, height: 150),
+              const SizedBox(height: 12),
+              Text(
+                "Enter the cards shown in the image:",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: _manualCardEntries.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == _manualCardEntries.length) {
+                    int selectedValue = 1;
+                    game_card.CardColor selectedColor = game_card.CardColor.red;
+
+                    return Row(
+                      children: [
+                        DropdownButton<game_card.CardColor>(
+                          value: selectedColor,
+                          onChanged:
+                              (value) => setState(() => selectedColor = value!),
+                          items:
+                              game_card.CardColor.values.map((color) {
+                                return DropdownMenuItem(
+                                  value: color,
+                                  child: Text(color.name),
+                                );
+                              }).toList(),
+                        ),
+                        const SizedBox(width: 10),
+                        DropdownButton<int>(
+                          value: selectedValue,
+                          onChanged:
+                              (value) => setState(() => selectedValue = value!),
+                          items:
+                              List.generate(12, (i) => i + 1).map((num) {
+                                return DropdownMenuItem(
+                                  value: num,
+                                  child: Text(num.toString()),
+                                );
+                              }).toList(),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _manualCardEntries.add(
+                                game_card.Card(
+                                  id: DateTime.now().toIso8601String(),
+                                  color: selectedColor,
+                                  value: selectedValue,
+                                  type: game_card.CardType.number,
+                                ),
+                              );
+                            });
+                          },
+                          child: const Text("Add Card"),
+                        ),
+                      ],
+                    );
+                  } else {
+                    final card = _manualCardEntries[index];
+                    return ListTile(
+                      title: Text(
+                        '${card.color.name.toUpperCase()} ${card.value}',
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed:
+                            () => setState(
+                              () => _manualCardEntries.removeAt(index),
+                            ),
+                      ),
+                    );
+                  }
+                },
+              ),
+              ElevatedButton(
+                onPressed: () => _replaceHandWithManualEntries(player),
+                child: const Text("Replace Hand with These Cards"),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              ),
+            ],
+
             const SizedBox(height: 8),
             Expanded(
               child: SingleChildScrollView(
