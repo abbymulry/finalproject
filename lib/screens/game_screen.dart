@@ -15,7 +15,6 @@ import '../services/game_multiplayer_service.dart'; // For GameMultiplayerServic
 class GameScreen extends StatefulWidget {
   final Game engine;
   const GameScreen({super.key, required this.engine});
-  
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -31,7 +30,7 @@ class _GameScreenState extends State<GameScreen> {
   File? _uploadedImage;
   List<game_card.Card> _manualCardEntries = [];
   final ImagePicker _picker = ImagePicker();
-  
+
   // multiplayer functionality
   StreamSubscription<Game>? _gameSubscription;
   final GameMultiplayerService _multiplayerService = GameMultiplayerService();
@@ -40,16 +39,17 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Determine if this is a multiplayer game by checking the game ID format
-    _isMultiplayerGame = widget.engine.id.length == 6 && 
-                         widget.engine.id.toUpperCase() == widget.engine.id;
-    
+    _isMultiplayerGame =
+        widget.engine.id.length == 6 &&
+        widget.engine.id.toUpperCase() == widget.engine.id;
+
     // Set up multiplayer listener if this is a multiplayer game
     if (_isMultiplayerGame) {
       _setupMultiplayerListener();
     }
-    
+
     // set the user name to the first player in the list for testing
     userName = widget.engine.players[0].name;
     print('[PHASE10] Human player identified as: $userName');
@@ -70,78 +70,94 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
   }
-  
+
   // multiplayer listener setup
   void _setupMultiplayerListener() {
-    print('[PHASE10] Setting up multiplayer listener for game: ${widget.engine.id}');
-    _gameSubscription = _multiplayerService.listenToGame(widget.engine.id).listen(
-      (updatedGame) {
-        // Only update if the game state has changed
-        if (updatedGame.lastUpdated.isAfter(widget.engine.lastUpdated)) {
-          print('[PHASE10] Received updated game state from server');
-          setState(() {
-            // Instead of trying to replace the entire engine, update its properties
-            // Copy values from updatedGame to widget.engine
-            // This is a workaround since we can't directly replace widget.engine
-            
-            // Update players (except for the local player's hand)
-            final localPlayerIndex = widget.engine.players.indexWhere(
-              (p) => p.name == userName
-            );
-            
-            // Save the local player's hand if found
-            List<game_card.Card>? localPlayerHand;
-            if (localPlayerIndex >= 0) {
-              localPlayerHand = List.from(widget.engine.players[localPlayerIndex].hand);
-            }
-            
-            // Update game properties
-            widget.engine.discardPile = updatedGame.discardPile;
-            widget.engine.currentPlayerIndex = updatedGame.currentPlayerIndex;
-            widget.engine.state = updatedGame.state;
-            
-            // Update players
-            for (int i = 0; i < widget.engine.players.length; i++) {
-              // For the local player, preserve their hand
-              if (i == localPlayerIndex && localPlayerHand != null) {
-                widget.engine.players[i].currentPhase = updatedGame.players[i].currentPhase;
-                widget.engine.players[i].score = updatedGame.players[i].score;
-                widget.engine.players[i].hasDrawn = updatedGame.players[i].hasDrawn;
-                widget.engine.players[i].isSkipped = updatedGame.players[i].isSkipped;
-                widget.engine.players[i].hasLaidDown = updatedGame.players[i].hasLaidDown;
-                widget.engine.players[i].completedPhases = updatedGame.players[i].completedPhases;
-                // Keep the existing hand
-              } else {
-                // For other players, update everything
-                widget.engine.players[i] = updatedGame.players[i];
-              }
-            }
-            
-            // Reset game state variables after remote update
-            _isProcessingTurn = false;
-            _hasDrawnThisTurn = widget.engine.currentPlayer.name == userName && 
-                              widget.engine.currentPlayer.hasDrawn;
-            _phaseAttemptedThisTurn = false;
-            _drawnCard = null;
-            _selectedCards.clear();
-            
-            print('[PHASE10] Game state updated from server');
-            print('[PHASE10] Current player: ${widget.engine.currentPlayer.name}');
-            
-            // If it's AI's turn after the update, handle it
-            if (widget.engine.currentPlayer.name != userName) {
-              _handleAiTurn();
-            }
-          });
-        }
-      },
-      onError: (error) {
-        print('[PHASE10] Error listening to game updates: $error');
-        _handleError('Multiplayer sync error', error);
-      }
+    print(
+      '[PHASE10] Setting up multiplayer listener for game: ${widget.engine.id}',
     );
+    _gameSubscription = _multiplayerService
+        .listenToGame(widget.engine.id)
+        .listen(
+          (updatedGame) {
+            // Only update if the game state has changed
+            if (updatedGame.lastUpdated.isAfter(widget.engine.lastUpdated)) {
+              print('[PHASE10] Received updated game state from server');
+              setState(() {
+                // Instead of trying to replace the entire engine, update its properties
+                // Copy values from updatedGame to widget.engine
+                // This is a workaround since we can't directly replace widget.engine
+
+                // Update players (except for the local player's hand)
+                final localPlayerIndex = widget.engine.players.indexWhere(
+                  (p) => p.name == userName,
+                );
+
+                // Save the local player's hand if found
+                List<game_card.Card>? localPlayerHand;
+                if (localPlayerIndex >= 0) {
+                  localPlayerHand = List.from(
+                    widget.engine.players[localPlayerIndex].hand,
+                  );
+                }
+
+                // Update game properties
+                widget.engine.discardPile = updatedGame.discardPile;
+                widget.engine.currentPlayerIndex =
+                    updatedGame.currentPlayerIndex;
+                widget.engine.state = updatedGame.state;
+
+                // Update players
+                for (int i = 0; i < widget.engine.players.length; i++) {
+                  // For the local player, preserve their hand
+                  if (i == localPlayerIndex && localPlayerHand != null) {
+                    widget.engine.players[i].currentPhase =
+                        updatedGame.players[i].currentPhase;
+                    widget.engine.players[i].score =
+                        updatedGame.players[i].score;
+                    widget.engine.players[i].hasDrawn =
+                        updatedGame.players[i].hasDrawn;
+                    widget.engine.players[i].isSkipped =
+                        updatedGame.players[i].isSkipped;
+                    widget.engine.players[i].hasLaidDown =
+                        updatedGame.players[i].hasLaidDown;
+                    widget.engine.players[i].completedPhases =
+                        updatedGame.players[i].completedPhases;
+                    // Keep the existing hand
+                  } else {
+                    // For other players, update everything
+                    widget.engine.players[i] = updatedGame.players[i];
+                  }
+                }
+
+                // Reset game state variables after remote update
+                _isProcessingTurn = false;
+                _hasDrawnThisTurn =
+                    widget.engine.currentPlayer.name == userName &&
+                    widget.engine.currentPlayer.hasDrawn;
+                _phaseAttemptedThisTurn = false;
+                _drawnCard = null;
+                _selectedCards.clear();
+
+                print('[PHASE10] Game state updated from server');
+                print(
+                  '[PHASE10] Current player: ${widget.engine.currentPlayer.name}',
+                );
+
+                // If it's AI's turn after the update, handle it
+                if (widget.engine.currentPlayer.name != userName) {
+                  _handleAiTurn();
+                }
+              });
+            }
+          },
+          onError: (error) {
+            print('[PHASE10] Error listening to game updates: $error');
+            _handleError('Multiplayer sync error', error);
+          },
+        );
   }
-  
+
   // helper method for syncing game state
   Future<void> _syncGameState() async {
     if (_isMultiplayerGame) {
@@ -154,7 +170,7 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
   }
-  
+
   // cleanup for multiplayer subscription
   @override
   void dispose() {
@@ -2816,15 +2832,12 @@ class _GameScreenState extends State<GameScreen> {
     // sort the player's hand for better display/easier user intepretation
     List<game_card.Card> sortedHand = List.from(player.hand);
     sortedHand.sort((a, b) {
-      // sort by type first -> numbers then wilds then skips
       if (a.type != b.type) {
         return a.type.index.compareTo(b.type.index);
       }
-      // for cards of same type, sort by color
       if (a.value != b.value) {
         return a.value.compareTo(b.value);
       }
-      // sort by value
       return a.color.index.compareTo(b.color.index);
     });
 
@@ -2839,40 +2852,53 @@ class _GameScreenState extends State<GameScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // New row with your turn on left and phase info on right
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  isUserTurn ? Icons.person : Icons.computer,
-                  color: isUserTurn ? Colors.green : Colors.grey,
+                Row(
+                  children: [
+                    Icon(
+                      isUserTurn ? Icons.person : Icons.computer,
+                      color: isUserTurn ? Colors.green : Colors.grey,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      isUserTurn ? "Your Turn" : "AI Turn",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isUserTurn ? Colors.green : Colors.grey,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  isUserTurn ? "Your Turn" : "AI Turn",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: isUserTurn ? Colors.green : Colors.grey,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      "Current Phase: ${player.currentPhase}${player.hasLaidDown ? ' ✓' : ''}",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: player.hasLaidDown ? Colors.green : null,
+                      ),
+                    ),
+                    Text(
+                      "Phase Completed: ${player.hasLaidDown ? 'Yes' : 'No'}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    Text(
+                      "Cards Drawn This Turn: ${_hasDrawnThisTurn ? 'Yes' : 'No'}",
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
                 ),
               ],
             ),
+
             const SizedBox(height: 12),
-            Text(
-              "Current Phase: ${player.currentPhase}${player.hasLaidDown ? ' ✓' : ''}",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: player.hasLaidDown ? Colors.green : null,
-              ),
-            ),
-            Text(
-              "Phase Completed: ${player.hasLaidDown ? 'Yes' : 'No'}",
-              style: const TextStyle(fontSize: 16),
-            ),
-            Text(
-              "Cards Drawn This Turn: ${_hasDrawnThisTurn ? 'Yes' : 'No'}",
-              style: const TextStyle(fontSize: 16),
-            ),
             if (_selectedCards.isNotEmpty)
               Text(
                 "Selected Cards: ${_selectedCards.length}",
@@ -3007,237 +3033,250 @@ class _GameScreenState extends State<GameScreen> {
               "Your Hand:",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            // player Hand
-            const Text(
-              "Your Hand:",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
 
-            // ⬇️ Add this right after the label
             ElevatedButton(
               onPressed: _pickCardImage,
               child: const Text("Upload Image of Real Cards"),
             ),
-            if (_uploadedImage != null) ...[
-              const SizedBox(height: 12),
-              Image.file(_uploadedImage!, height: 150),
-              const SizedBox(height: 12),
-              Text(
-                "Enter the cards shown in the image:",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: _manualCardEntries.length + 1,
-                itemBuilder: (context, index) {
-                  if (index == _manualCardEntries.length) {
-                    int selectedValue = 1;
-                    game_card.CardColor selectedColor = game_card.CardColor.red;
 
-                    return Row(
-                      children: [
-                        DropdownButton<game_card.CardColor>(
-                          value: selectedColor,
-                          onChanged:
-                              (value) => setState(() => selectedColor = value!),
-                          items:
-                              game_card.CardColor.values.map((color) {
-                                return DropdownMenuItem(
-                                  value: color,
-                                  child: Text(color.name),
-                                );
-                              }).toList(),
-                        ),
-                        const SizedBox(width: 10),
-                        DropdownButton<int>(
-                          value: selectedValue,
-                          onChanged:
-                              (value) => setState(() => selectedValue = value!),
-                          items:
-                              List.generate(12, (i) => i + 1).map((num) {
-                                return DropdownMenuItem(
-                                  value: num,
-                                  child: Text(num.toString()),
-                                );
-                              }).toList(),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _manualCardEntries.add(
-                                game_card.Card(
-                                  id: DateTime.now().toIso8601String(),
-                                  color: selectedColor,
-                                  value: selectedValue,
-                                  type: game_card.CardType.number,
+            if (_uploadedImage != null)
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 120,
+                        child: Image.file(_uploadedImage!, fit: BoxFit.contain),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        "Enter the cards shown in the image:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: _manualCardEntries.length + 1,
+                        itemBuilder: (context, index) {
+                          if (index == _manualCardEntries.length) {
+                            int selectedValue = 1;
+                            game_card.CardColor selectedColor =
+                                game_card.CardColor.red;
+
+                            return Row(
+                              children: [
+                                DropdownButton<game_card.CardColor>(
+                                  value: selectedColor,
+                                  onChanged:
+                                      (value) => setState(
+                                        () => selectedColor = value!,
+                                      ),
+                                  items:
+                                      game_card.CardColor.values.map((color) {
+                                        return DropdownMenuItem(
+                                          value: color,
+                                          child: Text(color.name),
+                                        );
+                                      }).toList(),
                                 ),
-                              );
-                            });
-                          },
-                          child: const Text("Add Card"),
+                                const SizedBox(width: 10),
+                                DropdownButton<int>(
+                                  value: selectedValue,
+                                  onChanged:
+                                      (value) => setState(
+                                        () => selectedValue = value!,
+                                      ),
+                                  items:
+                                      List.generate(12, (i) => i + 1).map((
+                                        num,
+                                      ) {
+                                        return DropdownMenuItem(
+                                          value: num,
+                                          child: Text(num.toString()),
+                                        );
+                                      }).toList(),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _manualCardEntries.add(
+                                        game_card.Card(
+                                          id: DateTime.now().toIso8601String(),
+                                          color: selectedColor,
+                                          value: selectedValue,
+                                          type: game_card.CardType.number,
+                                        ),
+                                      );
+                                    });
+                                  },
+                                  child: const Text("Add Card"),
+                                ),
+                              ],
+                            );
+                          } else {
+                            final card = _manualCardEntries[index];
+                            return ListTile(
+                              title: Text(
+                                '${card.color.name.toUpperCase()} ${card.value}',
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed:
+                                    () => setState(
+                                      () => _manualCardEntries.removeAt(index),
+                                    ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _replaceHandWithManualEntries(player),
+                        child: const Text("Replace Hand with These Cards"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
                         ),
-                      ],
-                    );
-                  } else {
-                    final card = _manualCardEntries[index];
-                    return ListTile(
-                      title: Text(
-                        '${card.color.name.toUpperCase()} ${card.value}',
                       ),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed:
-                            () => setState(
-                              () => _manualCardEntries.removeAt(index),
-                            ),
-                      ),
-                    );
-                  }
-                },
-              ),
-              ElevatedButton(
-                onPressed: () => _replaceHandWithManualEntries(player),
-                child: const Text("Replace Hand with These Cards"),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-              ),
-            ],
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children:
+                        sortedHand.map((card) {
+                          final isSelected = _selectedCards.any(
+                            (c) => c.id == card.id,
+                          );
+                          final isNewCard = _drawnCard?.id == card.id;
 
-            const SizedBox(height: 8),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children:
-                      sortedHand.map((card) {
-                        final isSelected = _selectedCards.any(
-                          (c) => c.id == card.id,
-                        );
-                        final isNewCard = _drawnCard?.id == card.id;
-
-                        return GestureDetector(
-                          onTap:
-                              isUserTurn
-                                  ? () {
-                                    // if we've drawn a card this turn
-                                    if (_hasDrawnThisTurn) {
-                                      // if card is already selected, deselect it
-                                      if (isSelected) {
-                                        _toggleCardSelection(card);
-                                      }
-                                      // if no cards are selected, this might be a discard action
-                                      else if (_selectedCards.isEmpty) {
-                                        // show discard confirmation
-                                        showDialog(
-                                          context: context,
-                                          builder:
-                                              (context) => AlertDialog(
-                                                title: const Text(
-                                                  'Card Action',
-                                                ),
-                                                content: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      'What do you want to do with ${card.toString()}?',
-                                                    ),
-                                                    const SizedBox(height: 16),
-                                                    ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop();
-                                                        _toggleCardSelection(
-                                                          card,
-                                                        );
-                                                      },
-                                                      child: const Text(
-                                                        'Select for Phase',
+                          return GestureDetector(
+                            onTap:
+                                isUserTurn
+                                    ? () {
+                                      if (_hasDrawnThisTurn) {
+                                        if (isSelected) {
+                                          _toggleCardSelection(card);
+                                        } else if (_selectedCards.isEmpty) {
+                                          showDialog(
+                                            context: context,
+                                            builder:
+                                                (context) => AlertDialog(
+                                                  title: const Text(
+                                                    'Card Action',
+                                                  ),
+                                                  content: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        'What do you want to do with ${card.toString()}?',
                                                       ),
-                                                    ),
-                                                    const SizedBox(height: 8),
-                                                    ElevatedButton(
-                                                      onPressed: () {
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop();
-                                                        _endTurn(player, card);
-                                                      },
+                                                      const SizedBox(
+                                                        height: 16,
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop();
+                                                          _toggleCardSelection(
+                                                            card,
+                                                          );
+                                                        },
+                                                        child: const Text(
+                                                          'Select for Phase',
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      ElevatedButton(
+                                                        onPressed: () {
+                                                          Navigator.of(
+                                                            context,
+                                                          ).pop();
+                                                          _endTurn(
+                                                            player,
+                                                            card,
+                                                          );
+                                                        },
+                                                        child: const Text(
+                                                          'Discard & End Turn',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed:
+                                                          () =>
+                                                              Navigator.of(
+                                                                context,
+                                                              ).pop(),
                                                       child: const Text(
-                                                        'Discard & End Turn',
+                                                        'Cancel',
                                                       ),
                                                     ),
                                                   ],
                                                 ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed:
-                                                        () =>
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop(),
-                                                    child: const Text('Cancel'),
-                                                  ),
-                                                ],
-                                              ),
+                                          );
+                                        } else {
+                                          _toggleCardSelection(card);
+                                        }
+                                      } else {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Draw a card first'),
+                                          ),
                                         );
                                       }
-                                      // otherwise, select the card
-                                      else {
-                                        _toggleCardSelection(card);
-                                      }
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Draw a card first'),
-                                        ),
-                                      );
                                     }
-                                  }
-                                  : null,
-                          child: Container(
-                            width: 70,
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? Colors.blue.shade200
-                                      : isNewCard
-                                      ? Colors.green.shade100
-                                      : Colors.white,
-                              border: Border.all(
+                                    : null,
+                            child: Container(
+                              width: 60,
+                              height: 90,
+                              decoration: BoxDecoration(
                                 color:
                                     isSelected
-                                        ? Colors.blue
+                                        ? Colors.blue.shade200
                                         : isNewCard
-                                        ? Colors.green
-                                        : Colors.grey,
-                                width: isSelected || isNewCard ? 2 : 1,
+                                        ? Colors.green.shade100
+                                        : Colors.white,
+                                border: Border.all(
+                                  color:
+                                      isSelected
+                                          ? Colors.blue
+                                          : isNewCard
+                                          ? Colors.green
+                                          : Colors.grey,
+                                  width: isSelected || isNewCard ? 2 : 1,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                card.toString(),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight:
-                                      isSelected || isNewCard
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
+                              child: Center(
+                                child: Text(
+                                  card.toString(),
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight:
+                                        isSelected || isNewCard
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
