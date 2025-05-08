@@ -24,6 +24,7 @@ class Player {
   bool hasDrawn;                    // Flag indicating if the player has drawn a card this turn
   bool isSkipped;                   // Flag indicating if the player's turn is skipped
   bool hasLaidDown;                 // Flag indicating if the player has laid down cards for their phase this round
+  bool isHost;
 
   // =====================================================
   // Constructor with named parameters and default values
@@ -38,6 +39,7 @@ class Player {
     this.hasDrawn = false,          // Player hasn't drawn yet at start of turn
     this.isSkipped = false,         // Player isn't skipped by default
     this.hasLaidDown = false,       // Player hasn't laid down cards by default
+    this.isHost = false,
   }) : hand = hand ?? [],           // Initialize empty hand if not provided
        completedPhases = completedPhases ?? []; // Initialize empty completed phases if not provided
 
@@ -61,6 +63,7 @@ class Player {
       hasDrawn: json['hasDrawn'],          // Get drawn status
       isSkipped: json['isSkipped'] ?? false, // Get skipped status (default false)
       hasLaidDown: json['hasLaidDown'] ?? false, // Get laid down status (default false)
+      isHost: json['isHost'] ?? false,
     );
   }
 
@@ -82,6 +85,7 @@ class Player {
       'hasDrawn': hasDrawn,         // Store drawn status
       'isSkipped': isSkipped,       // Store skipped status
       'hasLaidDown': hasLaidDown,   // Store laid down status
+      'isHost': isHost,
     };
   }
 

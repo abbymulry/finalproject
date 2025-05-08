@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/game_multiplayer_service.dart';
+import 'game_screen.dart';
 
 class JoinGameScreen extends StatefulWidget {
   const JoinGameScreen({super.key});
@@ -9,6 +11,8 @@ class JoinGameScreen extends StatefulWidget {
 
 class _JoinGameScreenState extends State<JoinGameScreen> {
   final TextEditingController _codeController = TextEditingController();
+  final GameMultiplayerService _multiplayerService = GameMultiplayerService();
+  bool _isJoining = false;
   
   // colors to match play screen
   static const Color primaryBlue = Color(0xFF2D6BE0);
@@ -20,6 +24,66 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
   void dispose() {
     _codeController.dispose();
     super.dispose();
+  }
+
+  // Add join game functionality
+  Future<void> _joinGame() async {
+    // Validate code
+    if (_codeController.text.isEmpty || _codeController.text.length != 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid 6-character code')),
+      );
+      return;
+    }
+
+    final code = _codeController.text.toUpperCase();
+    
+    setState(() {
+      _isJoining = true;
+    });
+    
+    try {
+      // Check if code is valid
+      final isValid = await _multiplayerService.isGameCodeValid(code);
+      
+      if (!isValid) {
+        throw Exception('Invalid game code or game no longer active');
+      }
+      
+      // Join the game
+      final game = await _multiplayerService.joinGameWithCode(code);
+      
+      if (game == null) {
+        throw Exception('Failed to join game');
+      }
+      
+      setState(() {
+        _isJoining = false;
+      });
+      
+      // Navigate to game screen
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => GameScreen(engine: game),
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isJoining = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -150,15 +214,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                         width: double.infinity,
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // temporary placeholder for the actual join functionality
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Join functionality will be implemented later'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
+                          onPressed: _isJoining ? null : _joinGame,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryBlue,
                             foregroundColor: Colors.white,
@@ -167,13 +223,19 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                             ),
                             elevation: 0,
                           ),
-                          child: Text(
-                            'Join Game',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: _isJoining
+                            ? SizedBox(
+                                height: 24,
+                                width: 24,
+                                child: CircularProgressIndicator(color: Colors.white),
+                              )
+                            : Text(
+                                'Join Game',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                         ),
                       ),
                     ],

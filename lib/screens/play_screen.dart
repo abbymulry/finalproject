@@ -20,6 +20,7 @@ import '../models/player.dart';
 import 'game_screen.dart';
 import 'join_game_screen.dart';
 import 'help_screen.dart';
+import '../services/game_multiplayer_service.dart';
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -42,6 +43,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
   bool _hasGame = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
+  final GameMultiplayerService _multiplayerService = GameMultiplayerService();
 
   @override
   void initState() {
@@ -81,16 +83,66 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
   }
 
   Future<void> _startNewGame() async {
+    // Show game type selection dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('New Game'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Choose game type:'),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.computer),
+                    label: Text('Play vs AI'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Phase10Colors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _startSinglePlayerGame();
+                    },
+                  ),
+                  ElevatedButton.icon(
+                    icon: Icon(Icons.people),
+                    label: Text('Multiplayer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _hostMultiplayerGame();
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+  }
+
+    Future<void> _startSinglePlayerGame() async {
     try {
       setState(() {
         _isLoading = true;
       });
 
-      // get the current user
+      // Get the current user
       final currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'player1';
       final userEmail = FirebaseAuth.instance.currentUser?.email ?? 'Unknown';
       
-      // create players (user and AI)
+      // Create players (user and AI)
       final players = [
         Player(
           id: currentUserId,
@@ -102,7 +154,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
         )
       ];
 
-      // start a new game
+      // Start a new game
       await _gameSession.createNewGame(players);
 
       setState(() {
@@ -110,7 +162,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
         _isLoading = false;
       });
 
-      // navigate to game screen
+      // Navigate to game screen
       if (mounted) {
         Navigator.push(
           context,
@@ -131,6 +183,92 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
         setState(() {
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _hostMultiplayerGame() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      
+      // generate a game code
+      final gameCode = await _multiplayerService.createMultiplayerGame();
+      
+      setState(() {
+        _isLoading = false;
+        _hasGame = true;
+      });
+      
+      // show the code to the user
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            title: Text('Game Created!'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Share this code with a friend to join:'),
+                SizedBox(height: 20),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    gameCode,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 8,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Waiting for players to join...',
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  
+                  // Navigate to game screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GameScreen(engine: _gameSession.currentGame!),
+                    ),
+                  ).then((_) => _checkForSavedGame());
+                },
+                child: Text('Start Game'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating multiplayer game: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

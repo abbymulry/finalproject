@@ -134,4 +134,8 @@ class GameSession {
   Future<bool> checkForSavedGame() async {
     return await _repository.hasGame();
   }
+
+  void setCurrentGame(Game game) {
+    _currentGame = game; // no need to save to repository since this is coming from Firestore
+  }
 }

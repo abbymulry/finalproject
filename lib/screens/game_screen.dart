@@ -9,10 +9,13 @@ import '../models/card.dart' as game_card;
 import '../services/game_session.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'dart:async'; // For StreamSubscription
+import '../services/game_multiplayer_service.dart'; // For GameMultiplayerService
 
 class GameScreen extends StatefulWidget {
   final Game engine;
   const GameScreen({super.key, required this.engine});
+  
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -28,10 +31,25 @@ class _GameScreenState extends State<GameScreen> {
   File? _uploadedImage;
   List<game_card.Card> _manualCardEntries = [];
   final ImagePicker _picker = ImagePicker();
+  
+  // multiplayer functionality
+  StreamSubscription<Game>? _gameSubscription;
+  final GameMultiplayerService _multiplayerService = GameMultiplayerService();
+  bool _isMultiplayerGame = false;
 
   @override
   void initState() {
     super.initState();
+    
+    // Determine if this is a multiplayer game by checking the game ID format
+    _isMultiplayerGame = widget.engine.id.length == 6 && 
+                         widget.engine.id.toUpperCase() == widget.engine.id;
+    
+    // Set up multiplayer listener if this is a multiplayer game
+    if (_isMultiplayerGame) {
+      _setupMultiplayerListener();
+    }
+    
     // set the user name to the first player in the list for testing
     userName = widget.engine.players[0].name;
     print('[PHASE10] Human player identified as: $userName');
@@ -51,6 +69,98 @@ class _GameScreenState extends State<GameScreen> {
         _handleError('Error in post-frame callback', e);
       }
     });
+  }
+  
+  // multiplayer listener setup
+  void _setupMultiplayerListener() {
+    print('[PHASE10] Setting up multiplayer listener for game: ${widget.engine.id}');
+    _gameSubscription = _multiplayerService.listenToGame(widget.engine.id).listen(
+      (updatedGame) {
+        // Only update if the game state has changed
+        if (updatedGame.lastUpdated.isAfter(widget.engine.lastUpdated)) {
+          print('[PHASE10] Received updated game state from server');
+          setState(() {
+            // Instead of trying to replace the entire engine, update its properties
+            // Copy values from updatedGame to widget.engine
+            // This is a workaround since we can't directly replace widget.engine
+            
+            // Update players (except for the local player's hand)
+            final localPlayerIndex = widget.engine.players.indexWhere(
+              (p) => p.name == userName
+            );
+            
+            // Save the local player's hand if found
+            List<game_card.Card>? localPlayerHand;
+            if (localPlayerIndex >= 0) {
+              localPlayerHand = List.from(widget.engine.players[localPlayerIndex].hand);
+            }
+            
+            // Update game properties
+            widget.engine.discardPile = updatedGame.discardPile;
+            widget.engine.currentPlayerIndex = updatedGame.currentPlayerIndex;
+            widget.engine.state = updatedGame.state;
+            
+            // Update players
+            for (int i = 0; i < widget.engine.players.length; i++) {
+              // For the local player, preserve their hand
+              if (i == localPlayerIndex && localPlayerHand != null) {
+                widget.engine.players[i].currentPhase = updatedGame.players[i].currentPhase;
+                widget.engine.players[i].score = updatedGame.players[i].score;
+                widget.engine.players[i].hasDrawn = updatedGame.players[i].hasDrawn;
+                widget.engine.players[i].isSkipped = updatedGame.players[i].isSkipped;
+                widget.engine.players[i].hasLaidDown = updatedGame.players[i].hasLaidDown;
+                widget.engine.players[i].completedPhases = updatedGame.players[i].completedPhases;
+                // Keep the existing hand
+              } else {
+                // For other players, update everything
+                widget.engine.players[i] = updatedGame.players[i];
+              }
+            }
+            
+            // Reset game state variables after remote update
+            _isProcessingTurn = false;
+            _hasDrawnThisTurn = widget.engine.currentPlayer.name == userName && 
+                              widget.engine.currentPlayer.hasDrawn;
+            _phaseAttemptedThisTurn = false;
+            _drawnCard = null;
+            _selectedCards.clear();
+            
+            print('[PHASE10] Game state updated from server');
+            print('[PHASE10] Current player: ${widget.engine.currentPlayer.name}');
+            
+            // If it's AI's turn after the update, handle it
+            if (widget.engine.currentPlayer.name != userName) {
+              _handleAiTurn();
+            }
+          });
+        }
+      },
+      onError: (error) {
+        print('[PHASE10] Error listening to game updates: $error');
+        _handleError('Multiplayer sync error', error);
+      }
+    );
+  }
+  
+  // helper method for syncing game state
+  Future<void> _syncGameState() async {
+    if (_isMultiplayerGame) {
+      try {
+        print('[PHASE10] Syncing game state with server');
+        await _multiplayerService.updateGameState(widget.engine);
+        print('[PHASE10] Game state synced successfully');
+      } catch (e) {
+        _handleError('Failed to sync game state', e);
+      }
+    }
+  }
+  
+  // cleanup for multiplayer subscription
+  @override
+  void dispose() {
+    // cancel the subscription when the screen is disposed
+    _gameSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _pickCardImage() async {
@@ -263,23 +373,25 @@ class _GameScreenState extends State<GameScreen> {
         );
       });
 
-      // allow a small delay before processing another turn
-      _log('Delay before checking next turn');
-      await Future.delayed(const Duration(milliseconds: 300));
-      _isProcessingTurn = false;
-      _log('Setting _isProcessingTurn = false');
+      // sync after AI actions are complete
+      _syncGameState().then((_) {
+        // allow a small delay before processing another turn
+        _log('Delay before checking next turn');
+        _isProcessingTurn = false;
+        _log('Setting _isProcessingTurn = false');
 
-      // if it's still AI's turn, process the next AI turn
-      if (widget.engine.currentPlayer.name != userName) {
-        _log('Still AI turn, continuing AI turns');
-        _handleAiTurn();
-      } else {
-        _log('Now user turn, waiting for user input');
-        // reset turn state for player
-        _hasDrawnThisTurn = false;
-        _phaseAttemptedThisTurn = false;
-        _drawnCard = null;
-      }
+        // if it's still AI's turn, process the next AI turn
+        if (widget.engine.currentPlayer.name != userName) {
+          _log('Still AI turn, continuing AI turns');
+          _handleAiTurn();
+        } else {
+          _log('Now user turn, waiting for user input');
+          // reset turn state for player
+          _hasDrawnThisTurn = false;
+          _phaseAttemptedThisTurn = false;
+          _drawnCard = null;
+        }
+      });
     } catch (e) {
       _handleError('AI turn error', e);
       _isProcessingTurn = false;
@@ -329,6 +441,8 @@ class _GameScreenState extends State<GameScreen> {
 
         _log('Drew card from deck: $_drawnCard');
       });
+      // synch changes to firestore
+      _syncGameState();
     } catch (e) {
       _handleError('Error drawing from deck', e);
     }
@@ -370,6 +484,8 @@ class _GameScreenState extends State<GameScreen> {
 
         _log('Drew card from discard: $_drawnCard');
       });
+
+      _syncGameState();
     } catch (e) {
       _handleError('Error drawing from discard', e);
     }
@@ -542,6 +658,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -795,6 +912,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -988,6 +1106,7 @@ class _GameScreenState extends State<GameScreen> {
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
+              _syncGameState();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -1156,6 +1275,7 @@ class _GameScreenState extends State<GameScreen> {
                   'phase attempt result',
                   'Success',
                 );
+                _syncGameState();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1359,6 +1479,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1532,6 +1653,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1705,6 +1827,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1851,6 +1974,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -2002,6 +2126,7 @@ class _GameScreenState extends State<GameScreen> {
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
+            _syncGameState();
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -2229,6 +2354,7 @@ class _GameScreenState extends State<GameScreen> {
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
+              _syncGameState();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -2459,6 +2585,7 @@ class _GameScreenState extends State<GameScreen> {
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
+              _syncGameState();
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -2588,14 +2715,17 @@ class _GameScreenState extends State<GameScreen> {
         _logPlayerAction(widget.engine.currentPlayer.name, 'starting turn', '');
       });
 
-      // allow some time for the UI to update
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _isProcessingTurn = false;
+      // cync before processing the next turn
+      _syncGameState().then((_) {
+        // allow some time for the UI to update
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _isProcessingTurn = false;
 
-        // check if AI's turn after user plays
-        if (widget.engine.currentPlayer.name != userName) {
-          _handleAiTurn();
-        }
+          // check if AI's turn after user plays
+          if (widget.engine.currentPlayer.name != userName) {
+            _handleAiTurn();
+          }
+        });
       });
     } catch (e) {
       _handleError('Error ending turn', e);
@@ -2661,13 +2791,16 @@ class _GameScreenState extends State<GameScreen> {
         _selectedCards.clear();
       });
 
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _isProcessingTurn = false;
+      // sync before processing the next turn
+      _syncGameState().then((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _isProcessingTurn = false;
 
-        // check whose turn it is after the round ends
-        if (widget.engine.currentPlayer.name != userName) {
-          _handleAiTurn();
-        }
+          // check whose turn it is after the round ends
+          if (widget.engine.currentPlayer.name != userName) {
+            _handleAiTurn();
+          }
+        });
       });
     } catch (e) {
       _handleError('Error ending round', e);
