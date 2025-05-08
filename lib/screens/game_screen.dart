@@ -702,8 +702,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...');
-            SoundPlayer.playSuccessSound();
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound(); //Not working
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -958,6 +958,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -1152,6 +1154,8 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+              print('About to play success sound...'); //Can delete this before submission
+              SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
             } else {
@@ -1317,6 +1321,8 @@ class _GameScreenState extends State<GameScreen> {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+                print('About to play success sound...'); //Can delete this before submission
+                SoundPlayer.playPhaseCompleteSound();
                 _logPlayerAction(
                   player.name,
                   'phase attempt result',
@@ -1525,6 +1531,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -1699,6 +1707,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -1873,6 +1883,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -2020,6 +2032,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -2172,6 +2186,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
+            print('About to play success sound...'); //Can delete this before submission
+            SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
@@ -2400,6 +2416,8 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
+              print('About to play success sound...'); //Can delete this before submission
+              SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
             } else {
@@ -2631,6 +2649,8 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
+              print('About to play success sound...'); //Can delete this before submission
+              SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
             } else {
@@ -2666,6 +2686,8 @@ class _GameScreenState extends State<GameScreen> {
               backgroundColor: Colors.green,
             ),
           );
+          print('About to play success sound...'); //Can delete this before submission
+          SoundPlayer.playGameCompleteSound();
           _logPlayerAction(
             player.name,
             'attempted phase',
