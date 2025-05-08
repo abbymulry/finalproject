@@ -297,6 +297,7 @@ class Game {
     
     currentPlayer.hasLaidDown = true;
     print('[PHASE10-GAME] Player ${currentPlayer.name} has completed phase ${currentPlayer.currentPhase}');
+    SoundPlayer.playSuccessSound();
 
     // update timestamp
     lastUpdated = DateTime.now();

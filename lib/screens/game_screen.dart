@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async'; // For StreamSubscription
 import '../services/game_multiplayer_service.dart'; // For GameMultiplayerService
+import '../services/sound_player.dart';
 
 class GameScreen extends StatefulWidget {
   final Game engine;
@@ -701,6 +702,8 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
+            print('About to play success sound...');
+            SoundPlayer.playSuccessSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
           } else {
