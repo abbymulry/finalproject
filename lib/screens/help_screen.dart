@@ -99,3 +99,6 @@ class _HelpPageState extends State<HelpPage> {
   }
 }
 
+class AppLocalizations {
+}
+
