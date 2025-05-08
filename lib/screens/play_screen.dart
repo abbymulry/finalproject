@@ -12,11 +12,13 @@
 // active game screens
 // ==============================================================
 
+import 'package:finalproject/screens/join_game_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/game_session.dart';
 import '../models/player.dart';
 import 'game_screen.dart';
+import 'join_game_screen.dart';
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -412,8 +414,15 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                           'Play with friends online',
                           Icons.group,
                           Colors.purple,
-                          () {},
-                          false, // Disabled for now
+                          () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => JoinGameScreen(),
+                              ),
+                            );
+                          },
+                          true, // enabled  
                         ),
                         
                         SizedBox(height: 24),
