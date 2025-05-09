@@ -310,7 +310,8 @@ class _GameScreenState extends State<GameScreen> {
       ).showSnackBar(SnackBar(content: Text('$message: $error')));
     }
   }
-
+// method to check if AI can attempt a phase but replaced with AI logic
+/*  
   bool _attemptPhaseForAI(Player ai) {
     final phase = ai.currentPhase;
     final hand = List<game_card.Card>.from(ai.hand);
@@ -349,10 +350,11 @@ class _GameScreenState extends State<GameScreen> {
 
     if (success) {
       _log('AI completed phase $phase with groups: $groupIds');
+      
     }
 
     return success;
-  }
+  }  */
 
   List<List<game_card.Card>> _findSets(
     List<game_card.Card> hand,
@@ -517,7 +519,7 @@ class _GameScreenState extends State<GameScreen> {
         // logging before AI attempts a phase
         _logPlayerAction(ai.name, 'attempting phase', '');
 
-        bool success = _attemptPhaseForAI(ai);
+        bool success = AIBrain.attemptPhase(widget.engine, ai);
 
         // logging after AI attempts a phase
         _logPlayerAction(
