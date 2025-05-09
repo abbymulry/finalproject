@@ -99,3 +99,7 @@ class _HelpPageState extends State<HelpPage> {
   }
 }
 
+class AppLocalizations {
+  static of(BuildContext context) {}
+}
+

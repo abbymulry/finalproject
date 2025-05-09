@@ -9,7 +9,10 @@ import 'package:flutter_test/flutter_test.dart';     // Flutter testing framewor
 import 'package:finalproject/models/card.dart';      // Card model with types and colors
 import 'package:finalproject/models/player.dart';    // Player model for game participants
 import 'package:finalproject/models/phase.dart';     // Phase definitions for game rules
-import 'package:finalproject/models/game.dart';      // Game model being tested
+import 'package:finalproject/models/game.dart';
+
+import '../../lib/main.dart';
+import '../../lib/models/card.dart';      // Game model being tested
 
 /// Main test entry point - contains all test groups for Game model
 void main() {
