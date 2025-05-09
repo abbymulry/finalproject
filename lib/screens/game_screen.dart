@@ -216,11 +216,11 @@ class _GameScreenState extends State<GameScreen> {
   String getPhaseDescription(int phase) {
     switch (phase) {
       case 1:
-        return "Two sets of 3 cards with the same number.";
+        return "Two Sets of 3 cards with the same number.";
       case 2:
-        return "One set of 3 + one run of 4 consecutive numbers.";
+        return "One Set of 3 + one run of 4 consecutive numbers.";
       case 3:
-        return "One set of 4 + one run of 4 consecutive numbers.";
+        return "One Set of 4 + one run of 4 consecutive numbers.";
       case 4:
         return "Run of 7 consecutive numbers.";
       case 5:
@@ -228,15 +228,15 @@ class _GameScreenState extends State<GameScreen> {
       case 6:
         return "Run of 9 consecutive numbers.";
       case 7:
-        return "Two sets of 4 cards with the same number.";
+        return "Two Sets of 4 cards with the same number.";
       case 8:
         return "7 cards all of the same color.";
       case 9:
-        return "One set of 5 + one set of 2 cards.";
+        return "One Set of 5 + one set of 2 cards.";
       case 10:
-        return "One set of 5 + one set of 3 cards.";
+        return "One Set of 5 + one set of 3 cards.";
       default:
-        return "All phases completed!";
+        return "All Phases completed!";
     }
   }
 
@@ -310,8 +310,8 @@ class _GameScreenState extends State<GameScreen> {
       ).showSnackBar(SnackBar(content: Text('$message: $error')));
     }
   }
-// method to check if AI can attempt a phase but replaced with AI logic
-/*  
+  // method to check if AI can attempt a phase but replaced with AI logic
+  /*  
   bool _attemptPhaseForAI(Player ai) {
     final phase = ai.currentPhase;
     final hand = List<game_card.Card>.from(ai.hand);
