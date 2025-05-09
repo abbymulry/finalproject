@@ -21,7 +21,7 @@ import 'game_screen.dart';
 import 'join_game_screen.dart';
 import 'help_screen.dart';
 import '../services/game_multiplayer_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart' as GenAppLocalizations; 
 
 // Color palette for the updated UI
 class Phase10Colors {
@@ -89,18 +89,18 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(AppLocalizations.of(context).newgame),
+          title: Text(GenAppLocalizations.AppLocalizations.of(context).newgame),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(AppLocalizations.of(context).choosegt),
+              Text(GenAppLocalizations.AppLocalizations.of(context).choosegt),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton.icon(
                     icon: Icon(Icons.computer),
-                    label: Text(AppLocalizations.of(context).play_ai),
+                    label: Text(GenAppLocalizations.AppLocalizations.of(context).play_ai),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Phase10Colors.primaryBlue,
                       foregroundColor: Colors.white,
@@ -113,7 +113,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                   ),
                   ElevatedButton.icon(
                     icon: Icon(Icons.people),
-                    label: Text(AppLocalizations.of(context).multiplayer),
+                    label: Text(GenAppLocalizations.AppLocalizations.of(context).multiplayer),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal,
                       foregroundColor: Colors.white,
@@ -208,11 +208,11 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context). gamecreated),
+            title: Text(GenAppLocalizations.AppLocalizations.of(context).gamecreated),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(AppLocalizations.of(context).sharecodejoin),
+                Text(GenAppLocalizations.AppLocalizations.of(context).sharecodejoin),
                 SizedBox(height: 20),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -231,7 +231,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                 ),
                 SizedBox(height: 20),
                 Text(
-                  AppLocalizations.of(context).waitplayerjoin,
+                  GenAppLocalizations.AppLocalizations.of(context).waitplayerjoin,
                   style: TextStyle(
                     fontStyle: FontStyle.italic,
                     color: Colors.grey.shade700,
@@ -252,7 +252,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                     ),
                   ).then((_) => _checkForSavedGame());
                 },
-                child: Text(AppLocalizations.of(context).startgame),
+                child: Text(GenAppLocalizations.AppLocalizations.of(context).startgame),
               ),
             ],
           ),
@@ -287,7 +287,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(AppLocalizations.of(context).nogameinprocess),
+              content: Text(GenAppLocalizations.AppLocalizations.of(context).nogameinprocess),
               backgroundColor: Colors.orange,
               behavior: SnackBarBehavior.floating,
             ),
@@ -401,7 +401,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                   CircularProgressIndicator(color: Phase10Colors.primaryBlue),
                   SizedBox(height: 16),
                   Text(
-                    AppLocalizations.of(context).loadinggame,
+                    GenAppLocalizations.AppLocalizations.of(context).loadinggame,
                     style: TextStyle(
                       color: Phase10Colors.darkText,
                       fontSize: 16,
@@ -435,7 +435,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    AppLocalizations.of(context). welcome_user(userName),//'Welcome, $userName!'
+                                    GenAppLocalizations.AppLocalizations.of(context).welcome_user(userName),//'Welcome, $userName!'
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
@@ -443,7 +443,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                     ),
                                   ),
                                   Text(
-                                    AppLocalizations.of(context).readplayph10,
+                                    GenAppLocalizations.AppLocalizations.of(context).readplayph10,
                                     style: TextStyle(
                                       fontSize: 16,
                                       color: Colors.grey.shade600,
@@ -493,7 +493,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _hasGame ? AppLocalizations.of(context).gameinprocess : AppLocalizations.of(context).noactgame,
+                                      _hasGame ? GenAppLocalizations.AppLocalizations.of(context).gameinprocess : GenAppLocalizations.AppLocalizations.of(context).noactgame,
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -503,8 +503,8 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                     SizedBox(height: 4),
                                     Text(
                                       _hasGame 
-                                        ? AppLocalizations.of(context).yccontinuesavedgame
-                                        : AppLocalizations.of(context).startnewgametoplay,
+                                        ? GenAppLocalizations.AppLocalizations.of(context).yccontinuesavedgame
+                                        : GenAppLocalizations.AppLocalizations.of(context).startnewgametoplay,
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.grey.shade600,
@@ -520,7 +520,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                         SizedBox(height: 32),
                         
                         Text(
-                          AppLocalizations.of(context).gameoption,
+                          GenAppLocalizations.AppLocalizations.of(context).gameoption,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -532,8 +532,8 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                         
                         // Game options
                         _buildGameOption(
-                          AppLocalizations.of(context).newgame,
-                          AppLocalizations.of(context).freshgame,
+                          GenAppLocalizations.AppLocalizations.of(context).newgame,
+                          GenAppLocalizations.AppLocalizations.of(context).freshgame,
                           Icons.add_circle,
                           Phase10Colors.primaryBlue,
                           _startNewGame,
@@ -541,8 +541,8 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                         ),
                         
                         _buildGameOption(
-                          AppLocalizations.of(context).continuegame,
-                          AppLocalizations.of(context).resumesavedgame,
+                          GenAppLocalizations.AppLocalizations.of(context).continuegame,
+                          GenAppLocalizations.AppLocalizations.of(context).resumesavedgame,
                           Icons.play_circle,
                           Phase10Colors.accentOrange,
                           _continueGame,
@@ -550,8 +550,8 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                         ),
                         
                         _buildGameOption(
-                          AppLocalizations.of(context).joingame,
-                          AppLocalizations.of(context).playfreindonline,
+                          GenAppLocalizations.AppLocalizations.of(context).joingame,
+                          GenAppLocalizations.AppLocalizations.of(context).playfreindonline,
                           Icons.group,
                           Colors.purple,
                           () {
@@ -590,7 +590,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                   Icon(Icons.info_outline, color: Phase10Colors.primaryBlue),
                                   SizedBox(width: 8),
                                   Text(
-                                    AppLocalizations.of(context).aboutphase10, //about Phase 10
+                                    GenAppLocalizations.AppLocalizations.of(context).aboutphase10, //about Phase 10
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
@@ -601,7 +601,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                               ),
                               SizedBox(height: 12),
                               Text(
-                                AppLocalizations.of(context).phase10_explain,
+                                GenAppLocalizations.AppLocalizations.of(context).phase10_explain,
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Phase10Colors.darkText.withOpacity(0.7),
@@ -623,7 +623,7 @@ class _PlayPageState extends State<PlayPage> with SingleTickerProviderStateMixin
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
-                                child: Text(AppLocalizations.of(context).learnmore), //Learn more
+                                child: Text(GenAppLocalizations.AppLocalizations.of(context).learnmore), //Learn more
                               ),
                             ],
                           ),
