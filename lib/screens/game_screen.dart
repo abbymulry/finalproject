@@ -333,7 +333,25 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _logPlayerAction(ai.name, 'drawing card from deck', '');
 
-        ai.drawCard(widget.engine.deckObject);
+        final topDiscard =
+            widget.engine.discardPile.isNotEmpty
+                ? widget.engine.discardPile.last
+                : null;
+
+        bool shouldTakeDiscard =
+            topDiscard != null &&
+            topDiscard.type == game_card.CardType.normal &&
+            ai.hand.any(
+              (c) => c.value == topDiscard.value || c.color == topDiscard.color,
+            );
+
+        if (shouldTakeDiscard) {
+          _log('[AI] Decided to draw from discard pile: $topDiscard');
+          ai.drawFromDiscard(widget.engine.discardPile);
+        } else {
+          _log('[AI] Drawing from deck');
+          ai.drawCard(widget.engine.deckObject);
+        }
 
         // detailed logging after AI Draws
         _logPlayerAction(ai.name, 'drew', '${ai.hand.last}');
@@ -378,7 +396,8 @@ class _GameScreenState extends State<GameScreen> {
 
         _log('AI discarding card: ${ai.hand.first}');
         setState(() {
-          ai.discard(ai.hand.first, widget.engine.discardPile);
+          final discard = _chooseBestDiscard(ai.hand);
+          ai.discard(discard, widget.engine.discardPile);
 
           _logPlayerAction(
             ai.name,
@@ -702,7 +721,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound(); //Not working
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -958,7 +979,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1154,7 +1177,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -1321,7 +1346,9 @@ class _GameScreenState extends State<GameScreen> {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-                print('About to play success sound...'); //Can delete this before submission
+                print(
+                  'About to play success sound...',
+                ); //Can delete this before submission
                 SoundPlayer.playPhaseCompleteSound();
                 _logPlayerAction(
                   player.name,
@@ -1531,7 +1558,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1707,7 +1736,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1883,7 +1914,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2032,7 +2065,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2186,7 +2221,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2416,7 +2453,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -2649,7 +2688,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -2686,7 +2727,9 @@ class _GameScreenState extends State<GameScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          print('About to play success sound...'); //Can delete this before submission
+          print(
+            'About to play success sound...',
+          ); //Can delete this before submission
           SoundPlayer.playGameCompleteSound();
           _logPlayerAction(
             player.name,
