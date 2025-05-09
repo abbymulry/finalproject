@@ -24,8 +24,11 @@ import 'player.dart';
 import 'phase.dart';
 import 'deck.dart';
 import '../services/sound_player.dart';
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 0a01b59ef3213a69b0c03bcc65c0543b1168a2d2
 
 // game class represents the entire game state
 class Game {
@@ -300,7 +303,7 @@ class Game {
     
     currentPlayer.hasLaidDown = true;
     print('[PHASE10-GAME] Player ${currentPlayer.name} has completed phase ${currentPlayer.currentPhase}');
-    SoundPlayer.playSuccessSound();
+    SoundPlayer.playPhaseCompleteSound();
 
     // update timestamp
     lastUpdated = DateTime.now();
