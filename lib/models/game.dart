@@ -23,6 +23,9 @@ import 'card.dart';
 import 'player.dart';
 import 'phase.dart';
 import 'deck.dart';
+import '../services/sound_player.dart';
+
+
 
 // game class represents the entire game state
 class Game {
