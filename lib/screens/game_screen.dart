@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:async'; // For StreamSubscription
 import '../services/game_multiplayer_service.dart'; // For GameMultiplayerService
 import '../services/sound_player.dart';
+import 'package:finalproject/screens/ai_brain.dart';
 
 class GameScreen extends StatefulWidget {
   final Game engine;
