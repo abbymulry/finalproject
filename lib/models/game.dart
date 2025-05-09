@@ -456,6 +456,7 @@ class Game {
 }
 
 class SoundPlayer {
+  static void playSuccessSound() {}
 }
 
 extension on Object? {
