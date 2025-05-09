@@ -11,7 +11,8 @@ import 'package:finalproject/models/player.dart';    // Player model for game pa
 import 'package:finalproject/models/phase.dart';     // Phase definitions for game rules
 import 'package:finalproject/models/game.dart';
 
-import '../../lib/main.dart';      // Game model being tested
+import '../../lib/main.dart';
+import '../../lib/models/card.dart';      // Game model being tested
 
 /// Main test entry point - contains all test groups for Game model
 void main() {
