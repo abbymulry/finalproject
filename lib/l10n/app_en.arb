@@ -39,7 +39,7 @@
   "yccontinuesavedgame" : "You can continue your saved game",
   "startnewgametoplay" : "Start a new game to begin playing",
   "gameoption" : "Game Options",
-  "welcome_user" : "Welcome,{userName}!",
+  "welcome_user" : "Welcome111_,{userName}!",
   "@welcome_user": {
     "description": "Welcome message with the user's name.",
     "placeholders": {
