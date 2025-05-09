@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 enum CardType { normal, wild, skip }
 
@@ -63,7 +62,7 @@ class Player {
   int currentPhase = 1;
   bool hasLaidDown = false;
 
-  Player(this.name);
+  Player(this.name, {required String id, required String name});
 
   void drawCard(Deck deck) {
     hand.add(deck.draw());

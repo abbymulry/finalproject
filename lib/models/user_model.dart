@@ -58,8 +58,8 @@ class UserModel {
     int? gamesWon,
   }) {
     return UserModel(
-      uid: this.uid,
-      email: this.email,
+      uid: uid,
+      email: email,
       displayName: displayName ?? this.displayName,
       currentPhase: currentPhase ?? this.currentPhase,
       gamesPlayed: gamesPlayed ?? this.gamesPlayed,
