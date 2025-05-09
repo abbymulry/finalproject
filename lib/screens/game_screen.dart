@@ -271,6 +271,23 @@ class _GameScreenState extends State<GameScreen> {
     print('[PHASE10] $message');
   }
 
+  // method to choose the best card to discard
+  game_card.Card _chooseBestDiscard(List<game_card.Card> hand) {
+    final nonWilds =
+        hand.where((c) => c.type == game_card.CardType.number).toList();
+
+    if (nonWilds.isEmpty) return hand.first;
+
+    // Find least frequent number value
+    Map<int, int> freq = {};
+    for (var c in nonWilds) {
+      freq[c.value] = (freq[c.value] ?? 0) + 1;
+    }
+
+    nonWilds.sort((a, b) => freq[a.value]!.compareTo(freq[b.value]!));
+    return nonWilds.first;
+  }
+
   // method for consistent player logging
   void _logPlayerAction(String playerName, String action, String details) {
     print('[PHASE10-PLAYER] $playerName $action: $details');
@@ -333,7 +350,27 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _logPlayerAction(ai.name, 'drawing card from deck', '');
 
-        ai.drawCard(widget.engine.deckObject);
+        final topDiscard =
+            widget.engine.discardPile.isNotEmpty
+                ? widget.engine.discardPile.last
+                : null;
+
+        bool shouldTakeDiscard =
+            topDiscard != null &&
+            topDiscard.type == game_card.CardType.number &&
+            ai.hand.any(
+              (card) =>
+                  card.value == topDiscard.value ||
+                  card.color == topDiscard.color,
+            );
+
+        if (shouldTakeDiscard) {
+          ai.hand.add(widget.engine.drawFromDiscard());
+          _log('AI drew from discard: $topDiscard');
+        } else {
+          ai.drawCard(widget.engine.deckObject);
+          _log('AI drew from deck');
+        }
 
         // detailed logging after AI Draws
         _logPlayerAction(ai.name, 'drew', '${ai.hand.last}');
@@ -378,7 +415,9 @@ class _GameScreenState extends State<GameScreen> {
 
         _log('AI discarding card: ${ai.hand.first}');
         setState(() {
-          ai.discard(ai.hand.first, widget.engine.discardPile);
+          final discardCard = _chooseBestDiscard(ai.hand);
+          ai.discard(discardCard, widget.engine.discardPile);
+          _log('AI discarded: $discardCard');
 
           _logPlayerAction(
             ai.name,
