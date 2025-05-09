@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:async'; // For StreamSubscription
 import '../services/game_multiplayer_service.dart'; // For GameMultiplayerService
 import '../services/sound_player.dart';
+import 'package:finalproject/screens/ai_brain.dart';
 
 class GameScreen extends StatefulWidget {
   final Game engine;
@@ -215,11 +216,11 @@ class _GameScreenState extends State<GameScreen> {
   String getPhaseDescription(int phase) {
     switch (phase) {
       case 1:
-        return "Two sets of 3 cards with the same number.";
+        return "Two Sets of 3 cards with the same number.";
       case 2:
-        return "One set of 3 + one run of 4 consecutive numbers.";
+        return "One Set of 3 + one run of 4 consecutive numbers.";
       case 3:
-        return "One set of 4 + one run of 4 consecutive numbers.";
+        return "One Set of 4 + one run of 4 consecutive numbers.";
       case 4:
         return "Run of 7 consecutive numbers.";
       case 5:
@@ -227,15 +228,15 @@ class _GameScreenState extends State<GameScreen> {
       case 6:
         return "Run of 9 consecutive numbers.";
       case 7:
-        return "Two sets of 4 cards with the same number.";
+        return "Two Sets of 4 cards with the same number.";
       case 8:
         return "7 cards all of the same color.";
       case 9:
-        return "One set of 5 + one set of 2 cards.";
+        return "One Set of 5 + one set of 2 cards.";
       case 10:
-        return "One set of 5 + one set of 3 cards.";
+        return "One Set of 5 + one set of 3 cards.";
       default:
-        return "All phases completed!";
+        return "All Phases completed!";
     }
   }
 
@@ -271,6 +272,23 @@ class _GameScreenState extends State<GameScreen> {
     print('[PHASE10] $message');
   }
 
+  // method to choose the best card to discard
+  game_card.Card _chooseBestDiscard(List<game_card.Card> hand) {
+    final nonWilds =
+        hand.where((c) => c.type == game_card.CardType.number).toList();
+
+    if (nonWilds.isEmpty) return hand.first;
+
+    // Find least frequent number value
+    Map<int, int> freq = {};
+    for (var c in nonWilds) {
+      freq[c.value] = (freq[c.value] ?? 0) + 1;
+    }
+
+    nonWilds.sort((a, b) => freq[a.value]!.compareTo(freq[b.value]!));
+    return nonWilds.first;
+  }
+
   // method for consistent player logging
   void _logPlayerAction(String playerName, String action, String details) {
     print('[PHASE10-PLAYER] $playerName $action: $details');
@@ -291,6 +309,132 @@ class _GameScreenState extends State<GameScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('$message: $error')));
     }
+  }
+  // method to check if AI can attempt a phase but replaced with AI logic
+  /*  
+  bool _attemptPhaseForAI(Player ai) {
+    final phase = ai.currentPhase;
+    final hand = List<game_card.Card>.from(ai.hand);
+
+    List<List<game_card.Card>>? selectedGroups;
+
+    switch (phase) {
+      case 1: // Two sets of 3
+        selectedGroups = _findSets(hand, [3, 3]);
+        break;
+      case 2: // One set of 3 + run of 4
+        final sets = _findSets(hand, [3]);
+        if (sets.isNotEmpty) {
+          final remaining = _removeUsedCards(
+            hand,
+            sets.expand((e) => e).toList(),
+          );
+          final run = _findRun(remaining, 4);
+          if (run != null) selectedGroups = [sets.first, run];
+        }
+        break;
+      case 4: // Run of 7
+        final run = _findRun(hand, 7);
+        if (run != null) selectedGroups = [run];
+        break;
+      // Add other phases similarly...
+      default:
+        _log('AI logic not implemented for phase $phase');
+    }
+
+    if (selectedGroups == null) return false;
+
+    final groupIds =
+        selectedGroups.map((g) => g.map((c) => c.id).toList()).toList();
+    final success = widget.engine.playPhase(groupIds);
+
+    if (success) {
+      _log('AI completed phase $phase with groups: $groupIds');
+      
+    }
+
+    return success;
+  }  */
+
+  List<List<game_card.Card>> _findSets(
+    List<game_card.Card> hand,
+    List<int> sizes,
+  ) {
+    final Map<int, List<game_card.Card>> grouped = {};
+    final wilds = hand.where((c) => c.type == game_card.CardType.wild).toList();
+    final naturals = hand.where((c) => c.type == game_card.CardType.number);
+
+    for (var card in naturals) {
+      grouped.putIfAbsent(card.value, () => []).add(card);
+    }
+
+    final results = <List<game_card.Card>>[];
+
+    for (final size in sizes) {
+      bool found = false;
+      for (final group in grouped.values) {
+        if (group.length + wilds.length >= size) {
+          final combined = List<game_card.Card>.from(group);
+          while (combined.length < size && wilds.isNotEmpty) {
+            combined.add(wilds.removeLast());
+          }
+          results.add(combined);
+          found = true;
+          break;
+        }
+      }
+      if (!found) return [];
+    }
+
+    return results.length == sizes.length ? results : [];
+  }
+
+  List<game_card.Card> _removeUsedCards(
+    List<game_card.Card> hand,
+    List<game_card.Card> used,
+  ) {
+    final remaining = List<game_card.Card>.from(hand);
+    for (var c in used) {
+      remaining.remove(c);
+    }
+    return remaining;
+  }
+
+  List<game_card.Card>? _findRun(List<game_card.Card> hand, int runLength) {
+    final wilds = hand.where((c) => c.type == game_card.CardType.wild).toList();
+    final naturals =
+        hand.where((c) => c.type == game_card.CardType.number).toSet().toList()
+          ..sort((a, b) => a.value.compareTo(b.value));
+
+    for (int i = 1; i <= 12 - runLength + 1; i++) {
+      final run = <game_card.Card>[];
+      final usedValues = <int>{};
+      int needed = runLength;
+
+      for (var v = i; v < i + runLength; v++) {
+        final card = naturals.firstWhere(
+          (c) => c.value == v && !usedValues.contains(c.value),
+          orElse: () => throw Exception('Card not found'),
+        );
+
+        if (card != null) {
+          run.add(card);
+          usedValues.add(card.value);
+          needed--;
+        }
+      }
+
+      while (needed > 0 && wilds.isNotEmpty) {
+        run.add(wilds.removeLast());
+        needed--;
+      }
+
+      if (run.length == runLength) {
+        return run;
+      }
+    }
+
+    return null;
   }
 
   void _handleAiTurn() async {
@@ -333,7 +477,27 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _logPlayerAction(ai.name, 'drawing card from deck', '');
 
-        ai.drawCard(widget.engine.deckObject);
+        final topDiscard =
+            widget.engine.discardPile.isNotEmpty
+                ? widget.engine.discardPile.last
+                : null;
+
+        bool shouldTakeDiscard =
+            topDiscard != null &&
+            topDiscard.type == game_card.CardType.number &&
+            ai.hand.any(
+              (card) =>
+                  card.value == topDiscard.value ||
+                  card.color == topDiscard.color,
+            );
+
+        if (shouldTakeDiscard) {
+          ai.hand.add(widget.engine.drawFromDiscard());
+          _log('AI drew from discard: $topDiscard');
+        } else {
+          ai.drawCard(widget.engine.deckObject);
+          _log('AI drew from deck');
+        }
 
         // detailed logging after AI Draws
         _logPlayerAction(ai.name, 'drew', '${ai.hand.last}');
@@ -355,7 +519,7 @@ class _GameScreenState extends State<GameScreen> {
         // logging before AI attempts a phase
         _logPlayerAction(ai.name, 'attempting phase', '');
 
-        bool success = ai.attemptPhase();
+        bool success = AIBrain.attemptPhase(widget.engine, ai);
 
         // logging after AI attempts a phase
         _logPlayerAction(
@@ -378,7 +542,9 @@ class _GameScreenState extends State<GameScreen> {
 
         _log('AI discarding card: ${ai.hand.first}');
         setState(() {
-          ai.discard(ai.hand.first, widget.engine.discardPile);
+          final discardCard = _chooseBestDiscard(ai.hand);
+          ai.discard(discardCard, widget.engine.discardPile);
+          _log('AI discarded: $discardCard');
 
           _logPlayerAction(
             ai.name,
@@ -702,7 +868,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound(); //Not working
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -958,7 +1126,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1154,7 +1324,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -1321,7 +1493,9 @@ class _GameScreenState extends State<GameScreen> {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-                print('About to play success sound...'); //Can delete this before submission
+                print(
+                  'About to play success sound...',
+                ); //Can delete this before submission
                 SoundPlayer.playPhaseCompleteSound();
                 _logPlayerAction(
                   player.name,
@@ -1531,7 +1705,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1707,7 +1883,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -1883,7 +2061,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase Completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2032,7 +2212,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2186,7 +2368,9 @@ class _GameScreenState extends State<GameScreen> {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-            print('About to play success sound...'); //Can delete this before submission
+            print(
+              'About to play success sound...',
+            ); //Can delete this before submission
             SoundPlayer.playPhaseCompleteSound();
             _logPlayerAction(player.name, 'phase attempt result', 'Success');
             _syncGameState();
@@ -2416,7 +2600,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -2649,7 +2835,9 @@ class _GameScreenState extends State<GameScreen> {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Phase completed!')));
-              print('About to play success sound...'); //Can delete this before submission
+              print(
+                'About to play success sound...',
+              ); //Can delete this before submission
               SoundPlayer.playPhaseCompleteSound();
               _logPlayerAction(player.name, 'phase attempt result', 'Success');
               _syncGameState();
@@ -2686,7 +2874,9 @@ class _GameScreenState extends State<GameScreen> {
               backgroundColor: Colors.green,
             ),
           );
-          print('About to play success sound...'); //Can delete this before submission
+          print(
+            'About to play success sound...',
+          ); //Can delete this before submission
           SoundPlayer.playGameCompleteSound();
           _logPlayerAction(
             player.name,
