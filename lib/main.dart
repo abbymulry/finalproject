@@ -1,126 +1,149 @@
-// =====================================================
-// Phase 10 Flutter Game Implementation
-// =====================================================
-// Contributors:
-// Erich Krueger
-// Dillon Summers
-// Thomas Woodcum
-// Andrew Holden (AllenSyn20)
-// Abby Mulry
-// Mark Herpin
-// Jianan Niu
-// Dylan Miller
-// Joseph (Ashton) Berret
-// Van Tran
-// =====================================================
-
-// Core package imports for Flutter UI framework
 import 'package:flutter/material.dart';
-// Import for mathematical operations
-import 'dart:math';
-// Firebase integration for backend services
-import 'package:firebase_core/firebase_core.dart';
-// Provider package for state management
-import 'package:provider/provider.dart';
-// Custom project imports
-import 'providers/auth_provider.dart'; // Authentication logic
-import 'screens/login_screen.dart'; // Login UI screen
-import 'models/user_model.dart'; // User data model
-import 'screens/game_screen.dart'; // Main game screen
-import 'screens/play_screen.dart'; // Play interface screen
-import 'screens/help_screen.dart'; // Help/instructions screen
-import 'screens/score_screen.dart'; // Scoreboard screen
-import 'services/game_session.dart'; // Game session management
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; //Language Support
 
-// =====================================================
-// Color Palette Definition
-// =====================================================
-// Project-wide color scheme for consistent UI design
+enum CardType { normal, wild, skip }
+
 class ProjectPalette {
-  Color darkGray = Color.fromARGB(255, 47, 47, 60);
-  Color lightGray = Color.fromARGB(255, 206, 206, 255);
-  Color white = Color.fromARGB(255, 255, 255, 255);
-  Color black = Color.fromARGB(255, 0, 0, 0);
-  Color red = Color.fromARGB(255, 255, 0, 87);
-  Color orange = Color.fromARGB(255, 255, 183, 0);
-  Color green = Color.fromARGB(255, 0, 255, 73);
-  Color blue = Color.fromARGB(255, 0, 228, 255);
+  Color darkGray = const Color.fromARGB(255, 47, 47, 60);
+  Color lightGray = const Color.fromARGB(255, 206, 206, 255);
+  Color white = const Color.fromARGB(255, 255, 255, 255);
+  Color black = const Color.fromARGB(255, 0, 0, 0);
+  Color red = const Color.fromARGB(255, 255, 0, 87);
+  Color orange = const Color.fromARGB(255, 255, 183, 0);
+  Color green = const Color.fromARGB(255, 0, 255, 73);
+  Color blue = const Color.fromARGB(255, 0, 228, 255);
 }
 
-// =====================================================
-// FLUTTER UI IMPLEMENTATION
-// =====================================================
+class CardModel {
+  final int number;
+  final String color;
+  final CardType type;
 
-// Application entry point - initializes Firebase and sets up providers
-void main() async {
-  // Ensure Flutter bindings are initialized before using platform channels
-  WidgetsFlutterBinding.ensureInitialized();
-  try {
-    // Initialize Firebase for authentication and backend services
-    await Firebase.initializeApp();
-  } catch (e) {
-    print('Firebase initialization error: $e');
-    // continue running the app even if Firebase fails
-  }
-  // Launch the application with AuthProvider for state management
-  runApp(
-    MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
-      child: const MyApp(),
-    ),
-  );
-}
-
-// Root application widget with state management
-class MyApp extends StatefulWidget {
-  const MyApp({Key? key}) : super(key: key);
+  CardModel(this.number, this.color, this.type);
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  String toString() {
+    if (type == CardType.wild) return 'WILD';
+    if (type == CardType.skip) return 'SKIP';
+    return '$color $number';
+  }
 }
 
-// State management for the root application widget
-class _MyAppState extends State<MyApp> {
-  // Flag to ensure user check happens only once on startup
-  bool _hasCheckedUser = false;
+class Deck {
+  final List<CardModel> _cards = [];
+  final List<String> colors = ['Red', 'Green', 'Blue', 'Yellow'];
+
+  Deck() {
+    for (var color in colors) {
+      for (int n = 1; n <= 12; n++) {
+        _cards.add(CardModel(n, color, CardType.normal));
+        _cards.add(CardModel(n, color, CardType.normal));
+      }
+    }
+
+    for (int i = 0; i < 8; i++) {
+      _cards.add(CardModel(0, 'Any', CardType.wild));
+    }
+
+    for (int i = 0; i < 4; i++) {
+      _cards.add(CardModel(0, 'Any', CardType.skip));
+    }
+
+    shuffle();
+  }
+
+  void shuffle() => _cards.shuffle();
+  CardModel draw() => _cards.removeLast();
+  bool get isEmpty => _cards.isEmpty;
+}
+
+class Player {
+  final String name;
+  final List<CardModel> hand = [];
+  int currentPhase = 1;
+  bool hasLaidDown = false;
+
+  Player(this.name, {required String id, required String name});
+
+  void drawCard(Deck deck) {
+    hand.add(deck.draw());
+  }
+
+  void discard(CardModel card, List<CardModel> discardPile) {
+    hand.remove(card);
+    discardPile.add(card);
+  }
+
+  bool attemptPhase() {
+    var freq = <int, int>{};
+    for (var card in hand) {
+      if (card.type == CardType.normal) {
+        freq[card.number] = (freq[card.number] ?? 0) + 1;
+      }
+    }
+    if (freq.values.any((count) => count >= 3)) {
+      hasLaidDown = true;
+      return true;
+    }
+    return false;
+  }
+
+  bool get hasEmptyHand => hand.isEmpty;
+}
+
+class GameEngine {
+  final List<Player> players;
+  final Deck deck = Deck();
+  final List<CardModel> discardPile = [];
+  int currentPlayerIndex = 0;
+
+  GameEngine(this.players) {
+    for (var p in players) {
+      for (int i = 0; i < 10; i++) {
+        p.drawCard(deck);
+      }
+    }
+    discardPile.add(deck.draw());
+  }
+
+  Player get currentPlayer => players[currentPlayerIndex];
+
+  void nextTurn() {
+    currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+  }
+
+  void resetHands() {
+    for (var p in players) {
+      p.hand.clear();
+      for (int i = 0; i < 10; i++) {
+        p.drawCard(deck);
+      }
+      p.hasLaidDown = false;
+    }
+    discardPile.clear();
+    discardPile.add(deck.draw());
+  }
+}
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Access the auth provider for user authentication state
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    // Check current user on startup only once to prevent infinite loops
-    if (!_hasCheckedUser) {
-      _hasCheckedUser = true;
-      // Schedule after the frame is rendered to avoid build phase issues
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        print("Checking user once at app startup");
-        authProvider.checkCurrentUser();
-      });
-    }
-
-    // Define the MaterialApp with theme and routing
     return MaterialApp(
       title: 'Phase 10 Game',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color.fromARGB(255, 7, 100, 186),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      // Conditional rendering based on authentication state
-      home:
-          authProvider.isAuthenticated
-              ? const MyHomePage()
-              : const LoginScreen(),
-      supportedLocales: AppLocalizations.supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: const MyHomePage(),
     );
   }
 }
 
-// Main homepage with navigation after successful login
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -128,19 +151,14 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-// State management for the main homepage
 class _MyHomePageState extends State<MyHomePage> {
-  // Track the currently selected page index for bottom navigation
   int pageIndex = 0;
 
-  // Define the pages accessible through the bottom navigation bar
   static const List<Widget> _pages = <Widget>[
-    PlayPage(), // Game play interface
-    ScorePage(), // Score tracking and history
-    HelpPage(), // Game rules and instructions
+    PlayPage(),
+    HelpPage(),
   ];
 
-  // Handle bottom navigation bar item selection
   void _onItemTapped(int index) {
     setState(() {
       pageIndex = index;
@@ -149,42 +167,242 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Main scaffold with app bar, body, and bottom navigation
     return Scaffold(
       appBar: AppBar(
         title: const Text("Phase 10"),
         backgroundColor: Colors.lightBlue,
         foregroundColor: Colors.white,
-        actions: [
-          // Logout button in the app bar
-          TextButton.icon(
-            icon: const Icon(Icons.logout),
-            label: Text(AppLocalizations.of(context).logout, style: TextStyle(color: Colors.white)),
-            onPressed: () {
-              // Sign out the user through the auth provider
-              final authProvider = Provider.of<AuthProvider>(
-                context,
-                listen: false,
-              );
-              authProvider.signOut();
-            },
-          ),
-        ],
       ),
-      // Display the currently selected page
-      body: Container(color: Colors.white, child: _pages[pageIndex]),
-      // Bottom navigation for switching between app sections
+      body: Container(
+        color: Colors.white,
+        child: _pages[pageIndex],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         showUnselectedLabels: true,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: AppLocalizations.of(context).play),
-          BottomNavigationBarItem(icon: Icon(Icons.scoreboard), label: AppLocalizations.of(context).score),
-          BottomNavigationBarItem(icon: Icon(Icons.help), label: AppLocalizations.of(context).help),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.play_circle), label: 'Play'),
+          BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
         ],
         currentIndex: pageIndex,
         onTap: _onItemTapped,
         unselectedItemColor: Colors.grey,
         selectedItemColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+}
+
+class GameSession {
+  static final GameSession _instance = GameSession._internal();
+  factory GameSession() => _instance;
+  GameEngine? currentGame;
+  GameSession._internal();
+}
+
+class PlayPage extends StatelessWidget {
+  const PlayPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+                ),
+                onPressed: () {
+                  final game = GameEngine([Player('Bob'), Player('Alice')]);
+                  GameSession().currentGame = game;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                  );
+                },
+                child: Text("Start New Game", style: TextStyle(color: ProjectPalette().black)),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+                ),
+                onPressed: () {
+                  final game = GameSession().currentGame;
+                  if (game != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => GameScreen(engine: game)),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(const SnackBar(content: Text("No game in progress.")));
+                  }
+                },
+                child: Text("Continue Game", style: TextStyle(color: ProjectPalette().black)),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(ProjectPalette().lightGray),
+                ),
+                onPressed: () {},
+                child: Text("Join Game", style: TextStyle(color: ProjectPalette().black)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class HelpPage extends StatelessWidget {
+  const HelpPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: const Center(child: Text("Help content goes here.")),
+    );
+  }
+}
+
+class GameScreen extends StatefulWidget {
+  final GameEngine engine;
+  const GameScreen({super.key, required this.engine});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  final String userName = 'Bob';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.engine.currentPlayer.name != userName) {
+        _handleAiTurn();
+      }
+    });
+  }
+
+  void _handleAiTurn() async {
+    final ai = widget.engine.currentPlayer;
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (widget.engine.deck.isEmpty) return;
+
+    setState(() {
+      ai.drawCard(widget.engine.deck);
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    setState(() {
+      ai.attemptPhase();
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    if (ai.hand.isNotEmpty) {
+      setState(() {
+        ai.discard(ai.hand.first, widget.engine.discardPile);
+      });
+    }
+
+    if (ai.hasEmptyHand) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${ai.name} wins the round!')),
+      );
+      ai.currentPhase++;
+      widget.engine.resetHands();
+    }
+
+    setState(() {
+      widget.engine.nextTurn();
+    });
+
+    if (widget.engine.currentPlayer.name != userName) {
+      _handleAiTurn();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final player = widget.engine.currentPlayer;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("${player.name}'s Turn"),
+        backgroundColor: Colors.lightBlue,
+        foregroundColor: Colors.white,
+      ),
+      body: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Current Phase: ${player.currentPhase}", style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
+            Text("Has Laid Down: ${player.hasLaidDown ? 'Yes' : 'No'}",
+                style: const TextStyle(fontSize: 16)),
+            const SizedBox(height: 16),
+            Text("Top of Discard Pile: ${widget.engine.discardPile.last}",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: player.hand
+                  .map(
+                    (card) => ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                      ),
+                      onPressed: player.name == userName
+                          ? () {
+                              setState(() {
+                                player.discard(card, widget.engine.discardPile);
+                                if (player.hasEmptyHand) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('${player.name} wins the round!')),
+                                  );
+                                  player.currentPhase++;
+                                  widget.engine.resetHands();
+                                }
+                                widget.engine.nextTurn();
+                              });
+                            }
+                          : null,
+                      child: Text(card.toString()),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: player.name == userName
+                  ? () {
+                      setState(() {
+                        player.drawCard(widget.engine.deck);
+                      });
+                    }
+                  : null,
+              child: const Text('Draw Card'),
+            ),
+          ],
+        ),
       ),
     );
   }

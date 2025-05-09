@@ -24,6 +24,11 @@ import 'player.dart';
 import 'phase.dart';
 import 'deck.dart';
 import '../services/sound_player.dart';
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 0a01b59ef3213a69b0c03bcc65c0543b1168a2d2
 
 // game class represents the entire game state
 class Game {
@@ -49,9 +54,9 @@ class Game {
     this.state = GameState.waiting,
     List<Phase>? phases,
   }) : 
-    this._deckObject = deck,
-    this.phases = phases ?? Phase.createAllPhases(),
-    this.lastUpdated = DateTime.now();
+    _deckObject = deck,
+    phases = phases ?? Phase.createAllPhases(),
+    lastUpdated = DateTime.now();
   
   // get the current player whose turn it is
   Player get currentPlayer => players[currentPlayerIndex];
@@ -321,7 +326,7 @@ class Game {
         // other players get penalty points
         int score = player.calculateHandScore();
         player.score += score;
-        print('[PHASE10-GAME] ${player.name} gets ${score} penalty points, total now: ${player.score}');
+        print('[PHASE10-GAME] ${player.name} gets $score penalty points, total now: ${player.score}');
       }
       // remove skipped effect on all players at end of round
       player.isSkipped = false;
@@ -385,7 +390,7 @@ class Game {
         for (int i = 0; i < 10; i++) {
           Card drawnCard = _deckObject.draw();
           p.hand.add(drawnCard);
-          print('[PHASE10-GAME] Dealt card ${i+1}: ${drawnCard}');
+          print('[PHASE10-GAME] Dealt card ${i+1}: $drawnCard');
         }
         
         p.hasLaidDown = false;
@@ -402,7 +407,7 @@ class Game {
       // draw from the deck object for discard pile
       Card discardCard = _deckObject.draw();
       discardPile.add(discardCard);
-      print('[PHASE10-GAME] New top card on discard pile: ${discardCard}');
+      print('[PHASE10-GAME] New top card on discard pile: $discardCard');
     } catch (e) {
       print('[PHASE10-GAME] Error resetting hands: $e');
       throw Exception('Failed to reset hands: $e');
@@ -454,6 +459,10 @@ class Game {
     finishers.sort((a, b) => a.score.compareTo(b.score));
     return finishers.first;
   }
+}
+
+class SoundPlayer {
+  static void playSuccessSound() {}
 }
 
 extension on Object? {

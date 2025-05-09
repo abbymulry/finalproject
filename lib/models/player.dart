@@ -112,22 +112,22 @@ class Player {
   // Draw a card from the deck and add to player's hand
   // =====================================================
   void drawCard(Deck deck) {
-    print('[PHASE10-PLAYER] ${name} drawing card from deck with ${deck.length} cards');
+    print('[PHASE10-PLAYER] $name drawing card from deck with ${deck.length} cards');
     
     try {
       // draw card from deck
       final card = deck.draw();
-      print('[PHASE10-PLAYER] ${name} drew ${card}');
+      print('[PHASE10-PLAYER] $name drew $card');
       
       // add to hand
       hand.add(card);
-      print('[PHASE10-PLAYER] ${name} hand size now: ${hand.length}');
+      print('[PHASE10-PLAYER] $name hand size now: ${hand.length}');
       
       // set draw status
       hasDrawn = true;
-      print('[PHASE10-PLAYER] ${name} hasDrawn set to true');
+      print('[PHASE10-PLAYER] $name hasDrawn set to true');
     } catch (e) {
-      print('[PHASE10-PLAYER] ERROR: ${name} failed to draw card: $e');
+      print('[PHASE10-PLAYER] ERROR: $name failed to draw card: $e');
       rethrow;
     }
   }
@@ -136,7 +136,7 @@ class Player {
   // Discard a card from player's hand to the discard pile
   // =====================================================
   void discard(Card card, List<Card> discardPile) {
-    print('[PHASE10] ${name} discarding card: ${card}');
+    print('[PHASE10] $name discarding card: $card');
     // Find the card index in the player's hand
     final index = hand.indexWhere((c) => c.id == card.id);
     if (index == -1) {
@@ -147,7 +147,7 @@ class Player {
     // Remove card from hand and add to discard pile
     final removedCard = hand.removeAt(index);
     discardPile.add(removedCard);
-    print('[PHASE10] ${name} discarded card, hand size now: ${hand.length}');
+    print('[PHASE10] $name discarded card, hand size now: ${hand.length}');
   }
 
   // =====================================================
@@ -175,4 +175,20 @@ class Player {
   // Getter to check if player's hand is empty (game end condition)
   // =====================================================
   bool get hasEmptyHand => hand.isEmpty;
+}
+
+class Deck {
+  draw() {}
+}
+
+class CardType {
+  static Object number;
+}
+
+class Card {
+  get value => null;
+  
+  get type => null;
+  
+  get id => null;
 }
